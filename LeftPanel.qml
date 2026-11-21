@@ -252,8 +252,9 @@ Rectangle {
                 MoneroComponents.TextPlain {
                     id: balancePart1
                     themeTransition: false
-                    anchors.left: parent.left
-                    anchors.leftMargin: 58
+                    // SM64COIN: after the ticker ("SM64" is wider than "XMR"), not at a fixed offset
+                    anchors.left: currencyLabel.right
+                    anchors.leftMargin: 6
                     anchors.baseline: currencyLabel.baseline
                     color: MoneroComponents.Style.blackTheme ? "white" : "black"
                     Binding on color {
