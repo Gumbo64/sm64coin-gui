@@ -442,8 +442,8 @@ ApplicationWindow {
     }
 
     function onUriHandler(uri){
-        if (uri && (uri.startsWith("monero://") || uri.startsWith("monero:"))) {
-            const normalizedUri = uri.replace("monero://", "monero:");
+        if (uri && (uri.startsWith("sm64coin://") || uri.startsWith("sm64coin:"))) {
+            const normalizedUri = uri.replace("sm64coin://", "sm64coin:");
             const parsed = walletManager.parse_uri_to_object(normalizedUri);
 
             if (parsed.error) {
