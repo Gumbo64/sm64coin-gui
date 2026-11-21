@@ -349,7 +349,7 @@ Rectangle {
                 labelText: qsTr("Address") + translationManager.emptyString
                 addressValidation: true
                 placeholderFontSize: 16
-                placeholderText: qsTr("Enter the Monero Address (example: 44AFFq5kSiGBoZ...)") + translationManager.emptyString
+                placeholderText: qsTr("Enter the SM64Coin Address (example: SM64...)") + translationManager.emptyString
                 wrapMode: Text.WrapAnywhere
                 text: ''
             }

@@ -238,16 +238,17 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    app.setApplicationName("monero-core");
-    app.setDesktopFileName("org.getmonero.Monero");
-    app.setOrganizationDomain("getmonero.org");
-    app.setOrganizationName("monero-project");
+    // SM64COIN: own application identity (settings/log/wallet dirs must not clash with a Monero wallet)
+    app.setApplicationName("sm64coin-wallet");
+    app.setDesktopFileName("sm64coin-wallet");
+    app.setOrganizationDomain("localhost");
+    app.setOrganizationName("sm64coin");
 
     // Ask to enable Tails OS persistence mode, it affects:
     // - Log file location
-    // - QML Settings file location (monero-core.conf)
+    // - QML Settings file location (sm64coin-wallet.conf)
     // - Default wallets path
-    // Target directory is: ~/Persistent/Monero
+    // Target directory is: ~/Persistent/SM64Coin
     if (isTails) {
         if (!TailsOS::detectDataPersistence())
             TailsOS::showDataPersistenceDisabledWarning();
@@ -263,9 +264,9 @@ int main(int argc, char *argv[])
     #endif
 
     if(isTails && TailsOS::usePersistence){
-        moneroAccountsDir = QDir::homePath() + "/Persistent/Monero/wallets";
+        moneroAccountsDir = QDir::homePath() + "/Persistent/SM64Coin/wallets";
     } else if (!moneroAccountsRootDir.empty()) {
-        moneroAccountsDir = moneroAccountsRootDir.at(0) + "/Monero/wallets";
+        moneroAccountsDir = moneroAccountsRootDir.at(0) + "/SM64Coin/wallets";
     } else {
         qCritical() << "Error: accounts root directory could not be set";
         return 1;
@@ -514,7 +515,7 @@ Verify update binary using 'shasum'-compatible (SHA256 algo) output signed by tw
     if (accountName.isEmpty())
         accountName = qgetenv("USERNAME"); // Windows
     if (accountName.isEmpty())
-        accountName = "My monero Account";
+        accountName = "My SM64Coin Account";
 
     engine.rootContext()->setContextProperty("defaultAccountName", accountName);
     engine.rootContext()->setContextProperty("homePath", QDir::homePath());

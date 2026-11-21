@@ -62,6 +62,7 @@ Rectangle {
 
         MoneroComponents.CheckBox {
             id: checkForUpdatesCheckBox
+            visible: false // SM64COIN
             enabled: !disableCheckUpdatesFlag
             checked: persistentSettings.checkForUpdates && !disableCheckUpdatesFlag
             onClicked: persistentSettings.checkForUpdates = !persistentSettings.checkForUpdates
@@ -189,6 +190,7 @@ Rectangle {
         readonly property bool fiatRatesConsentNeeded: persistentSettings.fiatPriceCurrency !== "xmrusd" && !persistentSettings.fiatRatesConsentGiven
 
         RowLayout {
+            visible: false // SM64COIN: no price conversion
             MoneroComponents.CheckBox {
                 id: enableConvertCurrency
                 text: qsTr("Enable displaying balance in other currencies") + translationManager.emptyString

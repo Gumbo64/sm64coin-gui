@@ -56,7 +56,7 @@ import "version.js" as Version
 ApplicationWindow {
     id: appWindow
     signal gracefulShutdownComplete()
-    title: "Monero" +
+    title: "SM64Coin" +
         (persistentSettings.displayWalletNameInTitleBar && walletName
         ? " - " + walletName
         : "")
@@ -436,8 +436,8 @@ ApplicationWindow {
         leftPanel.balanceString = balance
         leftPanel.balanceUnlockedString = balanceU
         if (middlePanel.state === "Account") {
-            middlePanel.accountView.balanceAllText = walletManager.displayAmount(appWindow.currentWallet.balanceAll()) + " XMR";
-            middlePanel.accountView.unlockedBalanceAllText = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll()) + " XMR";
+            middlePanel.accountView.balanceAllText = walletManager.displayAmount(appWindow.currentWallet.balanceAll()) + " SM64";
+            middlePanel.accountView.unlockedBalanceAllText = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll()) + " SM64";
         }
     }
 
@@ -542,7 +542,7 @@ ApplicationWindow {
                     console.error("Error opening wallet with password: ", wallet.errorString);
                     var errorMessage = qsTr("Couldn't open wallet: ") + wallet.errorString;
                     if (wallet.isLedger()) {
-                        errorMessage += "\n" + qsTr("Make sure your Ledger is connected and unlocked, and the Monero app is open.");
+                        errorMessage += "\n" + qsTr("Make sure your Ledger is connected and unlocked, and the SM64Coin app is open.");
                     } else if (wallet.isTrezor()) {
                         errorMessage += "\n" + qsTr("Make sure your Trezor is connected and unlocked.");
                     }
@@ -1254,7 +1254,7 @@ ApplicationWindow {
     Timer {
         id: fiatPriceTimer
         interval: 1000 * 60 * 5;
-        running: persistentSettings.fiatPriceEnabled && currentWallet !== undefined
+        running: false // SM64COIN: price fetching removed
         repeat: true
         onTriggered: appWindow.fiatApiRefresh()
         triggeredOnStart: true
@@ -1351,6 +1351,8 @@ ApplicationWindow {
     }
 
     function fiatApiRefresh(){
+        // SM64COIN: SM64 has no market price; never contact price APIs
+        return;
         // trigger API call
         if(!persistentSettings.fiatPriceEnabled)
             return;
@@ -1478,7 +1480,7 @@ ApplicationWindow {
                 oshelper.createDesktopEntry();
             } else if (isLinux) {
                 confirmationDialog.title = qsTr("Desktop entry") + translationManager.emptyString;
-                confirmationDialog.text  = qsTr("Would you like to register Monero GUI Desktop entry?") + translationManager.emptyString;
+                confirmationDialog.text  = qsTr("Would you like to register SM64Coin GUI Desktop entry?") + translationManager.emptyString;
                 confirmationDialog.icon = StandardIcon.Question;
                 confirmationDialog.cancelText = qsTr("No") + translationManager.emptyString;
                 confirmationDialog.okText = qsTr("Yes") + translationManager.emptyString;
@@ -1556,7 +1558,7 @@ ApplicationWindow {
         property int walletMode: 2
         property int lockOnUserInActivityInterval: 10  // minutes
         property bool blackTheme: MoneroComponents.Style.blackTheme
-        property bool checkForUpdates: true
+        property bool checkForUpdates: false // SM64COIN
         property bool autosave: true
         property int autosaveMinutes: 10
         property bool pruneBlockchain: false
@@ -1564,7 +1566,7 @@ ApplicationWindow {
         property bool fiatPriceEnabled: false
         property bool fiatPriceToggle: false
         property string fiatPriceProvider: "kraken"
-        property string fiatPriceCurrency: "xmrusd"
+        property string fiatPriceCurrency: "xmrusd" // SM64COIN: unused, price conversion is hidden
         property bool fiatRatesConsentGiven: false
 
         property string proxyAddress: "127.0.0.1:9050"
@@ -2331,6 +2333,7 @@ ApplicationWindow {
     }
 
     function checkUpdates() {
+        return; // SM64COIN: disabled
         const version = Version.GUI_VERSION.match(/\d+\.\d+\.\d+\.\d+/);
         if (version) {
             walletManager.checkUpdatesAsync(
@@ -2344,7 +2347,7 @@ ApplicationWindow {
         id: updatesTimer
         interval: 3600 * 1000
         repeat: true
-        running: !disableCheckUpdatesFlag && persistentSettings.checkForUpdates
+        running: false // SM64COIN: no update checks (monero DNS update records do not apply)
         triggeredOnStart: true
         onTriggered: checkUpdates()
     }
@@ -2423,11 +2426,11 @@ ApplicationWindow {
     function getDefaultDaemonRpcPort(networkType) {
         switch (parseInt(networkType)) {
             case NetworkType.STAGENET:
-                return 38081;
+                return 36481; // SM64COIN
             case NetworkType.TESTNET:
-                return 28081;
+                return 26481; // SM64COIN
             default:
-                return 18081;
+                return 16481; // SM64COIN
         }
     }
 

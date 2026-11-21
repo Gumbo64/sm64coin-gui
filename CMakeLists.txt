@@ -12,10 +12,11 @@ set(VERSION "0.${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
 
 option(STATIC "Link libraries statically, requires static Qt")
 
-option(USE_DEVICE_TREZOR "Trezor support compilation" ON)
+option(USE_DEVICE_TREZOR "Trezor support compilation" OFF) # SM64COIN
 option(WITH_SCANNER "Enable webcam QR scanner" OFF)
-option(WITH_DESKTOP_ENTRY "Ask to install desktop entry on first startup" ON)
-option(WITH_UPDATER "Regularly check for new updates" ON)
+# SM64COIN: updater and desktop-entry prompt default OFF
+option(WITH_DESKTOP_ENTRY "Ask to install desktop entry on first startup" OFF)
+option(WITH_UPDATER "Regularly check for new updates" OFF)
 option(DEV_MODE "Checkout latest monero master on build" OFF)
 cmake_dependent_option(QML_TESTS "Build QML tests" OFF "NOT STATIC;NOT ANDROID;NOT IOS" OFF)
 option(SKIP_OPTIONAL_MONERO_BINARIES "Don't build optional monero binaries" ON)
@@ -36,6 +37,8 @@ include(CheckLinkerFlag)
 set(BUILD_GUI_DEPS ON)
 set(BUILD_64 ON CACHE BOOL "Build 64-bit binaries")
 
+# SM64COIN: gui/monero is a symlink to ../monero (the sm64coin daemon fork), so the upstream submodule-hash check cannot apply
+set(MANUAL_SUBMODULES ON)
 if(NOT MANUAL_SUBMODULES)
   find_package(Git)
   if(GIT_FOUND)
