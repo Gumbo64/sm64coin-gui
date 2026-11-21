@@ -54,8 +54,11 @@ QT_QPA_PLATFORM=offscreen build/bin/monero-wallet-gui --log-level 2 --daemon-add
 - Default daemon RPC ports 16481/26481/36481.
 - Price fetching (kraken/coinpaprika/frankfurter) and its settings removed/hidden; update checks off
   (QML timer off, `WITH_UPDATER=OFF`); donation button hidden (Monero address).
-- `pages/Mining.qml` replaced: explains that mining is done by playing; links the web miner
-  http://localhost:5181/mine and shows the `automine --address <your address>` command.
+- `pages/Mining.qml` replaced (SM64Coin is mined by playing): "Play to mine" opens the web miner with `?address=<wallet>`;
+  Start/Stop runs `sm64coin-automine` as a child process (`MinerProcess`, `src/main/sm64helpers.*`) with the wallet's
+  address and daemon, RAYON_NUM_THREADS from settings; paths/URLs persisted as `sm64*` settings in main.qml.
+- New `pages/Leaderboard.qml` (Advanced > Leaderboard): lists `GET <url>/leaderboard`, Join/Leave POST address + secret
+  view key to /register, /unregister. HTTP goes through `Sm64Http` (QML's own network access is blocked by the fork).
 - Address validation is libwallet's (`addressValid`), which uses the fork's SM64 prefixes.
 - Trezor off by default; desktop-entry prompt off.
 

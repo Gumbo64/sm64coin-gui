@@ -290,6 +290,7 @@ ApplicationWindow {
     }
 
     function closeWallet(callback) {
+        minerProcess.stop(); // SM64COIN
 
         // Disconnect all listeners
         if (typeof currentWallet === "undefined" || currentWallet === null) {
@@ -1513,6 +1514,14 @@ ApplicationWindow {
         property bool   allow_background_mining : false
         property bool   allow_p2pool_mining : false
         property bool   allowRemoteNodeMining : false
+        // SM64COIN: mining / leaderboard page settings
+        property string sm64MinerPath: "/workspaces/sm64-combined/sm64-crypto3/bin/sm64coin-automine"
+        property string sm64RomPath: "/workspaces/sm64-combined/sm64-crypto3/baserom.us.z64"
+        property string sm64SaveDir: "/workspaces/sm64-combined/sm64-crypto3/run/mined"
+        property int    sm64MinerThreads: 4
+        property string sm64WebMinerUrl: "http://localhost:5181/mine"
+        property string sm64LeaderboardUrl: "http://127.0.0.1:16490"
+        property string sm64LeaderboardName: ""
         property bool   miningIgnoreBattery : true
         property int    miningModeSelected: 0
         property int    chainDropdownSelected: 0
@@ -2303,6 +2312,7 @@ ApplicationWindow {
             return;
         isQuitting = true;
         console.log("close accepted");
+        minerProcess.stop(); // SM64COIN
         daemonManager.exit();
         p2poolManager.exit();
         closeWallet(function() {

@@ -72,6 +72,7 @@
 #include "qt/KeysFiles.h"
 #include "qt/MoneroSettings.h"
 #include "qt/NetworkAccessBlockingFactory.h"
+#include "sm64helpers.h" // SM64COIN
 #ifdef QML_TESTS
 #include "QmlTestHarness.h"
 #endif
@@ -465,6 +466,11 @@ Verify update binary using 'shasum'-compatible (SHA256 algo) output signed by tw
     engine.rootContext()->setContextProperty("globalCursor", &cursor);
     OSHelper osHelper;
     engine.rootContext()->setContextProperty("oshelper", &osHelper);
+    // SM64COIN: automated miner child process and HTTP client for the Mining/Leaderboard pages
+    MinerProcess minerProcess;
+    engine.rootContext()->setContextProperty("minerProcess", &minerProcess);
+    Sm64Http sm64Http;
+    engine.rootContext()->setContextProperty("sm64Http", &sm64Http);
 
     engine.addImportPath(":/fonts");
 

@@ -57,6 +57,12 @@ ColumnLayout {
             visible: !isAndroid
         }
         MoneroComponents.NavbarItem {
+            active: state == "Leaderboard"
+            text: qsTr("Leaderboard") + translationManager.emptyString
+            onSelected: state = "Leaderboard"
+            visible: !isAndroid
+        }
+        MoneroComponents.NavbarItem {
             active: state == "Prove"
             text: qsTr("Prove/check") + translationManager.emptyString
             onSelected: state = "Prove"
@@ -78,6 +84,7 @@ ColumnLayout {
         property Item currentView
         property Item previousView
         property Mining miningView: Mining { }
+        property Leaderboard leaderboardView: Leaderboard { }
         property TxKey prooveView: TxKey { }
         property SharedRingDB sharedRingDBView: SharedRingDB { }
         property Sign signView: Sign { }
@@ -106,6 +113,10 @@ ColumnLayout {
                 name: "Mining"
                 PropertyChanges { target: stateView; currentView: stateView.miningView }
                 PropertyChanges { target: root; panelHeight: stateView.miningView.miningHeight + 140 }
+            }, State {
+                name: "Leaderboard"
+                PropertyChanges { target: stateView; currentView: stateView.leaderboardView }
+                PropertyChanges { target: root; panelHeight: stateView.leaderboardView.panelHeight + 140 }
             }, State {
                 name: "Prove"
                 PropertyChanges { target: stateView; currentView: stateView.prooveView }
