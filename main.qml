@@ -447,7 +447,7 @@ ApplicationWindow {
             const parsed = walletManager.parse_uri_to_object(normalizedUri);
 
             if (parsed.error) {
-                console.log("Invalid Monero URI: " + parsed.error);
+                console.log("Invalid SM64Coin URI: " + parsed.error);
             } else {
                 middlePanel.transferView.sendTo(
                     parsed.address || "",
@@ -1165,10 +1165,10 @@ ApplicationWindow {
                 informationPopup.icon = StandardIcon.Critical;
             } else if (received > 0) {
                 if (in_pool) {
-                    informationPopup.text = qsTr("This address received %1 monero, but the transaction is not yet mined").arg(walletManager.displayAmount(received));
+                    informationPopup.text = qsTr("This address received %1 SM64, but the transaction is not yet mined").arg(walletManager.displayAmount(received));
                 }
                 else {
-                    informationPopup.text = qsTr("This address received %1 monero, with %2 confirmation(s).").arg(walletManager.displayAmount(received)).arg(confirmations);
+                    informationPopup.text = qsTr("This address received %1 SM64, with %2 confirmation(s).").arg(walletManager.displayAmount(received)).arg(confirmations);
                 }
             }
             else {
@@ -1499,7 +1499,7 @@ ApplicationWindow {
         id: persistentSettings
         fileName: {
             if(isTails && tailsUsePersistence)
-                return homePath + "/Persistent/Monero/monero-core.conf";
+                return homePath + "/Persistent/SM64Coin/sm64coin-wallet.conf";
             return "";
         }
 

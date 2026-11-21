@@ -92,7 +92,7 @@ Rectangle {
 
         MoneroComponents.TextPlain {
             text: qsTr("This page allows you to interact with the shared ring database. " +
-                       "This database is meant for use by Monero wallets as well as wallets from Monero clones which reuse the Monero keys.") + translationManager.emptyString
+                       "This database is meant for use by SM64Coin wallets as well as wallets from other chains which reuse the same keys.") + translationManager.emptyString
             wrapMode: Text.Wrap
             Layout.fillWidth: true
             font.family: MoneroComponents.Style.fontRegular.name
@@ -106,16 +106,16 @@ Rectangle {
             textFormat: Text.RichText
             text: qsTr("Rings") + translationManager.emptyString
             tooltip: qsTr(
-                    "In order to avoid nullifying the protection afforded by Monero's ring signatures, an output should not " +
+                    "In order to avoid nullifying the protection afforded by SM64Coin's ring signatures, an output should not " +
                     "be spent with different rings on different blockchains. While this is normally not a concern, it can become one " +
-                    "when a key-reusing Monero clone allows you to spend existing outputs. In this case, you need to ensure this " +
+                    "when another key-reusing chain allows you to spend existing outputs. In this case, you need to ensure this " +
                     "existing outputs uses the same ring on both chains.<br>" +
-                    "This will be done automatically by Monero and any key-reusing software which is not trying to actively strip " +
+                    "This will be done automatically by SM64Coin and any key-reusing software which is not trying to actively strip " +
                     "you of your privacy.<br>" +
-                    "If you are using a key-reusing Monero clone too, and this clone does not include this protection, you can still " +
-                    "ensure your transactions are protected by spending on the clone first, then manually adding the ring on this page, " +
-                    "which allows you to then spend your Monero safely.<br>" +
-                    "If you do not use a key-reusing Monero clone without these safety features, then you do not need to do anything " +
+                    "If you are using a key-reusing chain too, and that chain does not include this protection, you can still " +
+                    "ensure your transactions are protected by spending on that chain first, then manually adding the ring on this page, " +
+                    "which allows you to then spend your SM64Coin safely.<br>" +
+                    "If you do not use a key-reusing chain without these safety features, then you do not need to do anything " +
                     "as it is all automated.<br>"
                 ) + translationManager.emptyString
         }
@@ -124,7 +124,7 @@ Rectangle {
             textFormat: Text.RichText
             font.family: MoneroComponents.Style.fontRegular.name
             font.pixelSize: 14
-            text: qsTr("This records rings used by outputs spent on Monero on a key reusing chain, so that the same ring may be reused to avoid privacy issues.") + translationManager.emptyString
+            text: qsTr("This records rings used by outputs spent on SM64Coin on a key reusing chain, so that the same ring may be reused to avoid privacy issues.") + translationManager.emptyString
             wrapMode: Text.Wrap
             Layout.fillWidth: true;
             color: MoneroComponents.Style.defaultFontColor

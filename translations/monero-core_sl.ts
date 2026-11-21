@@ -69,7 +69,7 @@
     </message>
     <message>
         <location filename="../pages/AddressBook.qml" line="93"/>
-        <source>This makes it easier to send or receive Monero and reduces errors when typing in addresses manually.</source>
+        <source>This makes it easier to send or receive SM64Coin and reduces errors when typing in addresses manually.</source>
         <translation>To omogoča lažje pošiljanje in prejemanje Monera in zmanjša napake pri vpisovanju naslova ročno.</translation>
     </message>
     <message>
@@ -633,13 +633,13 @@ It is recommended to enter passphrase on the hardware wallet for better security
     </message>
     <message>
         <location filename="../pages/Keys.qml" line="62"/>
-        <source>WARNING: Do not reuse your Monero keys on another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy.</source>
-        <translation>OPOZORILO: Ne delite Monero ključev z drugimi forki, RAZEN če ta fork sam zagotavlja varnost pri deljeni uporabi ključev. Takšno ravnanje zmanjšuje vašo zasebnost.</translation>
+        <source>WARNING: Do not reuse your SM64Coin keys on another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy.</source>
+        <translation>OPOZORILO: Ne delite SM64Coin ključev z drugimi forki, RAZEN če ta fork sam zagotavlja varnost pri deljeni uporabi ključev. Takšno ravnanje zmanjšuje vašo zasebnost.</translation>
     </message>
     <message>
         <location filename="../pages/Keys.qml" line="85"/>
-        <source>WARNING: Copying your seed to clipboard can expose you to malicious software, which may record your seed and steal your Monero. Please write down your seed manually.</source>
-        <translation>OPOZORILO: Kopiranje lahko izpostavi vaše mnemonično seme zlonameni programski opremi, ki lahko nato ukrade vaš Monero. Prosimo, da ročno prepišete mnemorično seme na papir.</translation>
+        <source>WARNING: Copying your seed to clipboard can expose you to malicious software, which may record your seed and steal your SM64Coin. Please write down your seed manually.</source>
+        <translation>OPOZORILO: Kopiranje lahko izpostavi vaše mnemonično seme zlonameni programski opremi, ki lahko nato ukrade vaš SM64Coin. Prosimo, da ročno prepišete mnemorično seme na papir.</translation>
     </message>
     <message>
         <location filename="../pages/Keys.qml" line="106"/>
@@ -1064,9 +1064,9 @@ It is recommended to enter passphrase on the hardware wallet for better security
     </message>
     <message>
         <location filename="../pages/Mining.qml" line="76"/>
-        <source>Mining with your computer helps strengthen the Monero network. The more people mine, the harder it is for the network to be attacked, and every little bit helps.
+        <source>Mining with your computer helps strengthen the SM64Coin network. The more people mine, the harder it is for the network to be attacked, and every little bit helps.
 
-Mining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!</source>
+Mining also gives you a small chance to earn some SM64Coin. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1717,8 +1717,8 @@ Mining also gives you a small chance to earn some Monero. Your computer will cre
     </message>
     <message>
         <location filename="../pages/settings/SettingsInfo.qml" line="102"/>
-        <source>Embedded Monero version: </source>
-        <translation>Vgrajena Monero verzija: </translation>
+        <source>Embedded SM64Coin version: </source>
+        <translation>Vgrajena SM64Coin verzija: </translation>
     </message>
     <message>
         <location filename="../pages/settings/SettingsInfo.qml" line="132"/>
@@ -1827,12 +1827,12 @@ Stara datoteka predpomnilnika denarnice bo preimenovana in se jo lahko obnovi po
     </message>
     <message>
         <location filename="../pages/settings/SettingsInfo.qml" line="410"/>
-        <source>Donate to Monero</source>
+        <source>Donate to SM64Coin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../pages/settings/SettingsInfo.qml" line="412"/>
-        <source>Donation to Monero Core Team</source>
+        <source>Donation to SM64Coin Core Team</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2011,13 +2011,13 @@ Stara datoteka predpomnilnika denarnice bo preimenovana in se jo lahko obnovi po
     </message>
     <message>
         <location filename="../pages/settings/SettingsNode.qml" line="224"/>
-        <source>Uses a third-party server to connect to the Monero network. Less secure, but easier on your computer.</source>
-        <translation>Uporablja strežnik tretje osebe za vzpostavitev povezave v Monero omrežje. Je manj varno vendar enostavnejše.</translation>
+        <source>Uses a third-party server to connect to the SM64Coin network. Less secure, but easier on your computer.</source>
+        <translation>Uporablja strežnik tretje osebe za vzpostavitev povezave v SM64Coin omrežje. Je manj varno vendar enostavnejše.</translation>
     </message>
     <message>
         <location filename="../pages/settings/SettingsNode.qml" line="253"/>
-        <source>To find a remote node, type &apos;Monero remote node&apos; into your favorite search engine. Please ensure the node is run by a trusted third-party.</source>
-        <translation>Da poiščete oddaljeno vozlišče, vnesite &apos;Monero remote node&apos; v vaš najljubši brskalnik. Prosim, da se prepričate, da vozlišče poganja zaupanja vredna stranka.</translation>
+        <source>To find a remote node, type &apos;SM64Coin remote node&apos; into your favorite search engine. Please ensure the node is run by a trusted third-party.</source>
+        <translation>Da poiščete oddaljeno vozlišče, vnesite &apos;SM64Coin remote node&apos; v vaš najljubši brskalnik. Prosim, da se prepričate, da vozlišče poganja zaupanja vredna stranka.</translation>
     </message>
     <message>
         <location filename="../pages/settings/SettingsNode.qml" line="317"/>
@@ -2199,7 +2199,7 @@ You can change the password in the wallet settings.</source>
     </message>
     <message>
         <location filename="../pages/settings/SettingsWallet.qml" line="177"/>
-        <source>Receive Monero for your business, easily.</source>
+        <source>Receive SM64Coin for your business, easily.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2227,8 +2227,8 @@ You can change the password in the wallet settings.</source>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="103"/>
-        <source>This page allows you to interact with the shared ring database. This database is meant for use by Monero wallets as well as wallets from Monero clones which reuse the Monero keys.</source>
-        <translation>Ta stran omogoča, da interaktirate z deljeno bazo obročev (RingDB). Ta baza je namenjena Monero denarnicam in prav tako klonom Monera, ki si delijo Monero ključe</translation>
+        <source>This page allows you to interact with the shared ring database. This database is meant for use by SM64Coin wallets as well as wallets from SM64Coin clones which reuse the SM64Coin keys.</source>
+        <translation>Ta stran omogoča, da interaktirate z deljeno bazo obročev (RingDB). Ta baza je namenjena SM64Coin denarnicam in prav tako klonom Monera, ki si delijo SM64Coin ključe</translation>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="115"/>
@@ -2237,8 +2237,8 @@ You can change the password in the wallet settings.</source>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="116"/>
-        <source>In order to obscure which inputs in a Monero transaction are being spent, a third party should not be able to tell which inputs in a ring are already known to be spent. Being able to do so would weaken the protection afforded by ring signatures. If all but one of the inputs are known to be already spent, then the input being actually spent becomes apparent, thereby nullifying the effect of ring signatures, one of the three main layers of privacy protection Monero uses.&lt;br&gt;To help transactions avoid those inputs, a list of known spent ones can be used to avoid using them in new transactions. Such a list is maintained by the Monero project and is available on the getmonero.org website, and you can import this list here.&lt;br&gt;Alternatively, you can scan the blockchain (and the blockchain of key-reusing Monero clones) yourself using the monero-blockchain-mark-spent-outputs tool to create a list of known spent outputs.&lt;br&gt;</source>
-        <translation>Da lahko v Monero transakciji zakrijete kateri inputi so porabljeni, tretja oseba ne sme vedeti, kateri inputi v obroču so že porabljeni. To bi zmanjšalo varnost, ki jo zagotavljajo obročni podpisi. Če je znano, da so vsi inputi razen enega porabljeni, potem je zadnji input, ki se ga porablja očiten. S tem so obročni podpisi, eden izmed treh stebrov varne zasebnosti Monera, neefektivni. Da se transakcije izognejo takšnim inputom, se uporablja lista znano že porabljenih inputov, ki se jih ne uporablja v novih transakcijah. Takšno listo ureja Monero projekt in je dobavljiva na getmonero.org. To listo lahko uvoziš tukaj. &lt;br&gt;Alternativno lahko sam preiščeš blockchain (vključno z Monero kloni, ki si delijo ključe) z uporabo orodja monero-blockchain-mark-spent-outputs, ki ustvari listo znanih, že porabljenih outputov.&lt;br&gt;</translation>
+        <source>In order to obscure which inputs in a SM64Coin transaction are being spent, a third party should not be able to tell which inputs in a ring are already known to be spent. Being able to do so would weaken the protection afforded by ring signatures. If all but one of the inputs are known to be already spent, then the input being actually spent becomes apparent, thereby nullifying the effect of ring signatures, one of the three main layers of privacy protection SM64Coin uses.&lt;br&gt;To help transactions avoid those inputs, a list of known spent ones can be used to avoid using them in new transactions. Such a list is maintained by the SM64Coin project and is available on the localhost:5181 website, and you can import this list here.&lt;br&gt;Alternatively, you can scan the blockchain (and the blockchain of key-reusing SM64Coin clones) yourself using the monero-blockchain-mark-spent-outputs tool to create a list of known spent outputs.&lt;br&gt;</source>
+        <translation>Da lahko v SM64Coin transakciji zakrijete kateri inputi so porabljeni, tretja oseba ne sme vedeti, kateri inputi v obroču so že porabljeni. To bi zmanjšalo varnost, ki jo zagotavljajo obročni podpisi. Če je znano, da so vsi inputi razen enega porabljeni, potem je zadnji input, ki se ga porablja očiten. S tem so obročni podpisi, eden izmed treh stebrov varne zasebnosti Monera, neefektivni. Da se transakcije izognejo takšnim inputom, se uporablja lista znano že porabljenih inputov, ki se jih ne uporablja v novih transakcijah. Takšno listo ureja SM64Coin projekt in je dobavljiva na localhost:5181. To listo lahko uvoziš tukaj. &lt;br&gt;Alternativno lahko sam preiščeš blockchain (vključno z SM64Coin kloni, ki si delijo ključe) z uporabo orodja monero-blockchain-mark-spent-outputs, ki ustvari listo znanih, že porabljenih outputov.&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="134"/>
@@ -2317,13 +2317,13 @@ You can change the password in the wallet settings.</source>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="247"/>
-        <source>In order to avoid nullifying the protection afforded by Monero&apos;s ring signatures, an output should not be spent with different rings on different blockchains. While this is normally not a concern, it can become one when a key-reusing Monero clone allows you to spend existing outputs. In this case, you need to ensure this existing outputs uses the same ring on both chains.&lt;br&gt;This will be done automatically by Monero and any key-reusing software which is not trying to actively strip you of your privacy.&lt;br&gt;If you are using a key-reusing Monero clone too, and this clone does not include this protection, you can still ensure your transactions are protected by spending on the clone first, then manually adding the ring on this page, which allows you to then spend your Monero safely.&lt;br&gt;If you do not use a key-reusing Monero clone without these safety features, then you do not need to do anything as it is all automated.&lt;br&gt;</source>
-        <translation>V izogib izničenju varnosti s strani Monerovih obročnih podpisov, se outputa ne sme zapraviti z različnimi obroči na različnih blockchainih. To načeloma ni zaskrbljujoče, razen ko vam Monero klon omogoča zapravljanje že obstoječih outputov. V tem primeru je potrebno zagotoviti, da ti, že obsotječi outputi uporabljajo isti obroč na obeh verigah.&lt;br&gt; To bo izvedeno samodejno s strani Monera in vsakega softvera, ki vam ne želi, namerno zmanjšati zasebnost.&lt;br&gt;Če uporabljate Monero klon, ki si deli vaše ključe in ne vključuje te zaščite, lahko še vedno zagotovite, da so vaše transakcije varne. To storite, tako da jih najprej zapravite na klonu in nato ročno dodate obroč na tej strani, ki vam zatem omogoča varno plačevanje z Monerom.&lt;br&gt;V kolikor ne uporabljate takšnih Monero klonov, potem vam ni potrebno storiti ničesar, saj se vse izvede samodejno.&lt;br&gt;</translation>
+        <source>In order to avoid nullifying the protection afforded by SM64Coin&apos;s ring signatures, an output should not be spent with different rings on different blockchains. While this is normally not a concern, it can become one when a key-reusing SM64Coin clone allows you to spend existing outputs. In this case, you need to ensure this existing outputs uses the same ring on both chains.&lt;br&gt;This will be done automatically by SM64Coin and any key-reusing software which is not trying to actively strip you of your privacy.&lt;br&gt;If you are using a key-reusing SM64Coin clone too, and this clone does not include this protection, you can still ensure your transactions are protected by spending on the clone first, then manually adding the ring on this page, which allows you to then spend your SM64Coin safely.&lt;br&gt;If you do not use a key-reusing SM64Coin clone without these safety features, then you do not need to do anything as it is all automated.&lt;br&gt;</source>
+        <translation>V izogib izničenju varnosti s strani SM64Coinvih obročnih podpisov, se outputa ne sme zapraviti z različnimi obroči na različnih blockchainih. To načeloma ni zaskrbljujoče, razen ko vam SM64Coin klon omogoča zapravljanje že obstoječih outputov. V tem primeru je potrebno zagotoviti, da ti, že obsotječi outputi uporabljajo isti obroč na obeh verigah.&lt;br&gt; To bo izvedeno samodejno s strani Monera in vsakega softvera, ki vam ne želi, namerno zmanjšati zasebnost.&lt;br&gt;Če uporabljate SM64Coin klon, ki si deli vaše ključe in ne vključuje te zaščite, lahko še vedno zagotovite, da so vaše transakcije varne. To storite, tako da jih najprej zapravite na klonu in nato ročno dodate obroč na tej strani, ki vam zatem omogoča varno plačevanje z SM64Coinm.&lt;br&gt;V kolikor ne uporabljate takšnih SM64Coin klonov, potem vam ni potrebno storiti ničesar, saj se vse izvede samodejno.&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="266"/>
-        <source>This records rings used by outputs spent on Monero on a key reusing chain, so that the same ring may be reused to avoid privacy issues.</source>
-        <translation>To shrani obroče tistih outputov, ki so bili zapravljeni na verigi, ki si deli Monero ključe. Tako se lahko isti obroč ponovno uporabi in s tem ohrani zasebnost.</translation>
+        <source>This records rings used by outputs spent on SM64Coin on a key reusing chain, so that the same ring may be reused to avoid privacy issues.</source>
+        <translation>To shrani obroče tistih outputov, ki so bili zapravljeni na verigi, ki si deli SM64Coin ključe. Tako se lahko isti obroč ponovno uporabi in s tem ohrani zasebnost.</translation>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="277"/>
@@ -2358,12 +2358,12 @@ You can change the password in the wallet settings.</source>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="363"/>
         <source>I intend to spend on key-reusing fork(s)</source>
-        <translation>Nameravam plačevati na forku, ki si deli Monero ključe</translation>
+        <translation>Nameravam plačevati na forku, ki si deli SM64Coin ključe</translation>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="375"/>
         <source>I might want to spend on key-reusing fork(s)</source>
-        <translation>Morda nameravam plačevati na forku, ki si deli Monero ključe</translation>
+        <translation>Morda nameravam plačevati na forku, ki si deli SM64Coin ključe</translation>
     </message>
     <message>
         <location filename="../pages/SharedRingDB.qml" line="387"/>
@@ -2497,8 +2497,8 @@ You can change the password in the wallet settings.</source>
     </message>
     <message>
         <location filename="../pages/Sign.qml" line="341"/>
-        <source>Enter the Monero Address (example: 44AFFq5kSiGBoZ...)</source>
-        <translation>Vnesi Monero naslov (primer: 44AFFq5kSiGBoZ...)</translation>
+        <source>Enter the SM64Coin Address (example: 44AFFq5kSiGBoZ...)</source>
+        <translation>Vnesi SM64Coin naslov (primer: 44AFFq5kSiGBoZ...)</translation>
     </message>
     <message>
         <location filename="../pages/Sign.qml" line="351"/>
@@ -2690,7 +2690,7 @@ You can change the password in the wallet settings.</source>
     </message>
     <message>
         <location filename="../pages/Transfer.qml" line="169"/>
-        <source>Spendable funds: %1 XMR. Please wait ~%2 minutes for your whole balance to become spendable.</source>
+        <source>Spendable funds: %1 SM64. Please wait ~%2 minutes for your whole balance to become spendable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2874,7 +2874,7 @@ Confirmation message:
     </message>
     <message>
         <location filename="../pages/Transfer.qml" line="985"/>
-        <source>Spend XMR from a cold (offline) wallet</source>
+        <source>Spend SM64 from a cold (offline) wallet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3000,8 +3000,8 @@ Confirmation message:
     </message>
     <message>
         <location filename="../pages/Transfer.qml" line="1071"/>
-        <source>Monero sent successfully</source>
-        <translation>Monero uspešno poslan</translation>
+        <source>SM64Coin sent successfully</source>
+        <translation>SM64Coin uspešno poslan</translation>
     </message>
     <message>
         <location filename="../pages/Transfer.qml" line="1090"/>
@@ -3105,7 +3105,7 @@ Posodobite vaš prikriti proces ali se povežite na drugega.</translation>
     </message>
     <message>
         <location filename="../components/TxConfirmationDialog.qml" line="311"/>
-        <source>Monero address</source>
+        <source>SM64Coin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3184,7 +3184,7 @@ For reserve proofs you don&apos;t need to specify tx id or address.</source>
     </message>
     <message>
         <location filename="../pages/TxKey.qml" line="109"/>
-        <source>Paste amount of XMR (reserve proof only)</source>
+        <source>Paste amount of SM64 (reserve proof only)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3258,12 +3258,12 @@ V primeru dokazila o plačilu, naslov prejemnika ni potreben.</translation>
     <name>UpdateDialog</name>
     <message>
         <location filename="../components/UpdateDialog.qml" line="77"/>
-        <source>New Monero version v%1 is available.</source>
+        <source>New SM64Coin version v%1 is available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../components/UpdateDialog.qml" line="98"/>
-        <source>Please visit getmonero.org for details</source>
+        <source>Please visit localhost:5181 for details</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3645,8 +3645,8 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardCreateWallet3.qml" line="60"/>
-        <source>To be able to communicate with the Monero network your wallet needs to be connected to a Monero node. For best privacy it&apos;s recommended to run your own node.</source>
-        <translation>Da lahko komunicirate z Monero omrežjem, mora biti vaša denarnica povezana z Monero vozliščem. Za najvišjo stopnjo zasebnosti je priporočljivo, da imate svoje vozlišče.</translation>
+        <source>To be able to communicate with the SM64Coin network your wallet needs to be connected to a SM64Coin node. For best privacy it&apos;s recommended to run your own node.</source>
+        <translation>Da lahko komunicirate z SM64Coin omrežjem, mora biti vaša denarnica povezana z SM64Coin vozliščem. Za najvišjo stopnjo zasebnosti je priporočljivo, da imate svoje vozlišče.</translation>
     </message>
 </context>
 <context>
@@ -3706,7 +3706,7 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardDaemonSettings.qml" line="152"/>
-        <source>Additionally, you may specify a bootstrap node to use Monero immediately.</source>
+        <source>Additionally, you may specify a bootstrap node to use SM64Coin immediately.</source>
         <translation>Za takojšno uporabo Monera lahko nastavite bootstrap vozlišče.</translation>
     </message>
     <message>
@@ -3719,7 +3719,7 @@ your input may be required.</source>
     <name>WizardHome</name>
     <message>
         <location filename="../wizard/WizardHome.qml" line="66"/>
-        <source>Welcome to Monero</source>
+        <source>Welcome to SM64Coin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3741,8 +3741,8 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardHome.qml" line="82"/>
-        <source>Choose this option if this is your first time using Monero.</source>
-        <translation>Izberite to opcijo, če prvič uporabljate Monero.</translation>
+        <source>Choose this option if this is your first time using SM64Coin.</source>
+        <translation>Izberite to opcijo, če prvič uporabljate SM64Coin.</translation>
     </message>
     <message>
         <location filename="../wizard/WizardHome.qml" line="104"/>
@@ -3751,8 +3751,8 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardHome.qml" line="108"/>
-        <source>Connect your hardware wallet to create a new Monero wallet.</source>
-        <translation>Za ustvaritev nove Monero denarnice, poveži hardversko denarnico z računalnikom.</translation>
+        <source>Connect your hardware wallet to create a new SM64Coin wallet.</source>
+        <translation>Za ustvaritev nove SM64Coin denarnice, poveži hardversko denarnico z računalnikom.</translation>
     </message>
     <message>
         <location filename="../wizard/WizardHome.qml" line="127"/>
@@ -3817,7 +3817,7 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardModeBootstrap.qml" line="84"/>
-        <source>Temporary use of remote nodes is useful in order to use Monero immediately (hence the name bootstrap), however be aware that when using remote nodes (including with the bootstrap setting), nodes could track your IP address, track your &quot;restore height&quot; and associated block request data, and send you inaccurate information to learn more about transactions you make.</source>
+        <source>Temporary use of remote nodes is useful in order to use SM64Coin immediately (hence the name bootstrap), however be aware that when using remote nodes (including with the bootstrap setting), nodes could track your IP address, track your &quot;restore height&quot; and associated block request data, and send you inaccurate information to learn more about transactions you make.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3840,8 +3840,8 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardModeRemoteNodeWarning.qml" line="72"/>
-        <source>This mode is ideal for managing small amounts of Monero. You have access to basic features for making and managing transactions. It will automatically connect to the Monero network so you can start using Monero immediately.</source>
-        <translation>Ta način je namenjen za upravljanje manjših zneskov Monera. Avtomatično se poveže v Monero omrežje, da lahko z uporabo Monera začnete takoj.</translation>
+        <source>This mode is ideal for managing small amounts of SM64Coin. You have access to basic features for making and managing transactions. It will automatically connect to the SM64Coin network so you can start using SM64Coin immediately.</source>
+        <translation>Ta način je namenjen za upravljanje manjših zneskov Monera. Avtomatično se poveže v SM64Coin omrežje, da lahko z uporabo Monera začnete takoj.</translation>
     </message>
     <message>
         <location filename="../wizard/WizardModeRemoteNodeWarning.qml" line="85"/>
@@ -3931,7 +3931,7 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardModeSelection.qml" line="166"/>
-        <source>Create portable wallets and use them on any PC. Enable if you installed Monero on a USB stick, an external drive, or any other portable storage medium.</source>
+        <source>Create portable wallets and use them on any PC. Enable if you installed SM64Coin on a USB stick, an external drive, or any other portable storage medium.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4103,10 +4103,10 @@ your input may be required.</source>
     </message>
     <message>
         <location filename="../wizard/WizardRestoreWallet3.qml" line="63"/>
-        <source>To be able to communicate with the Monero network your wallet needs to be connected to a Monero node. For best privacy it&apos;s recommended to run your own node.
+        <source>To be able to communicate with the SM64Coin network your wallet needs to be connected to a SM64Coin node. For best privacy it&apos;s recommended to run your own node.
 
 If you don&apos;t have the option to run your own node, there&apos;s an option to connect to a remote node.</source>
-        <translation>Da lahko komunicirate z omrežjem Monero, mora biti vaša denarnica povezana z Monero vozliščem. Za najboljšo zasebnost je priporočljiva uporaba lastnega vozlišča.
+        <translation>Da lahko komunicirate z omrežjem SM64Coin, mora biti vaša denarnica povezana z SM64Coin vozliščem. Za najboljšo zasebnost je priporočljiva uporaba lastnega vozlišča.
 
 Če nimate opcije uporabe lastnega vozlišča, lahko uporabite opcijo oddaljenega vozišča.</translation>
     </message>
@@ -4347,8 +4347,8 @@ If you don&apos;t have the option to run your own node, there&apos;s an option t
     </message>
     <message>
         <location filename="../main.qml" line="1055"/>
-        <source>This address received %1 monero, with %2 confirmation(s).</source>
-        <translation>Ta naslov je prejel %1 monerov, s %2 potrditev.</translation>
+        <source>This address received %1 SM64, with %2 confirmation(s).</source>
+        <translation>Ta naslov je prejel %1 SM64, s %2 potrditev.</translation>
     </message>
     <message>
         <location filename="../main.qml" line="1066"/>
@@ -4362,7 +4362,7 @@ If you don&apos;t have the option to run your own node, there&apos;s an option t
     </message>
     <message>
         <location filename="../main.qml" line="1345"/>
-        <source>Would you like to register Monero GUI Desktop entry?</source>
+        <source>Would you like to register SM64Coin GUI Desktop entry?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4501,7 +4501,7 @@ If you don&apos;t have the option to run your own node, there&apos;s an option t
     </message>
     <message>
         <location filename="../main.qml" line="1052"/>
-        <source>This address received %1 monero, but the transaction is not yet mined</source>
+        <source>This address received %1 SM64, but the transaction is not yet mined</source>
         <translation>Ta naslov je prejel %1 monera(ov), ampak transakcija še ni v bloku</translation>
     </message>
     <message>

@@ -386,7 +386,7 @@ Rectangle {
                 onClicked: {
                     var data = "";
                     data += "GUI version: " + Version.GUI_VERSION + " (Qt " + qtRuntimeVersion + ")";
-                    data += "\nEmbedded Monero version: " + moneroVersion;
+                    data += "\nEmbedded SM64Coin version: " + moneroVersion;
                     data += "\nWallet path: " + walletLocation.walletPath;
 
                     data += "\nWallet restore height: ";
@@ -410,7 +410,7 @@ Rectangle {
                 visible: false // SM64COIN: upstream donation address is a Monero address
                 text: qsTr("Donate to SM64Coin") + translationManager.emptyString
                 onClicked: {
-                    middlePanel.sendTo("888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H", "", qsTr("Donation to SM64Coin Core Team") + translationManager.emptyString);
+                    middlePanel.sendTo("", "", qsTr("Donation to SM64Coin Core Team") + translationManager.emptyString);
                 }
             }
         }

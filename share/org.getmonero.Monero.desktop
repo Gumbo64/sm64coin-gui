@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=Monero GUI
+Name=SM64Coin Wallet
 GenericName=Cryptocurrency wallet
-Comment=Monero GUI
+Comment=SM64Coin Wallet
 Exec=monero-wallet-gui
 Type=Application
 Terminal=false

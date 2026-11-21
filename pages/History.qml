@@ -1875,7 +1875,7 @@ Rectangle {
                 }
                 fromDatePicker.currentDate = firstDate;
             } else {
-                //date of monero birth (2014-04-18)
+                //SM64COIN: date of chain start (2026-11-21)
                 fromDatePicker.currentDate = model.transactionHistory.firstDateTime
             }
         }

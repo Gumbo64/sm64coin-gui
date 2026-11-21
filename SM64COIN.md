@@ -63,3 +63,7 @@ QT_QPA_PLATFORM=offscreen build/bin/monero-wallet-gui --log-level 2 --daemon-add
 
 - Payment URIs still use the `monero:` scheme because libwallet (`wallet2::make_uri/parse_uri`) does.
 - Translations/images/icons are still upstream Monero ones; "SharedRingDB" page is unchanged.
+
+## Rebrand pass 2
+
+User-visible Monero/XMR text, translations (.ts, source+translation), images (appicons, ico/icns, cards, mining badge, wordmarks, installer bitmaps) replaced with original SM64Coin artwork; Wizard.js restore-height maps from the 2026-11-21 chain start (5 min blocks). Internal identifiers unchanged.
