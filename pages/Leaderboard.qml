@@ -99,7 +99,7 @@ Rectangle {
 
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
-            text: qsTr("Opt in to the public SM64Coin leaderboard with this wallet. The standings are on the website.") + translationManager.emptyString
+            text: qsTr("Opt in to the SM64Coin leaderboard with this wallet. Nodes share the top 50 with each other (not on the blockchain); the standings are on the website. Joining goes to the leaderboard server your sm64coin launcher runs.") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.defaultFontColor
             font.family: MoneroComponents.Style.fontRegular.name
@@ -111,7 +111,7 @@ Rectangle {
             spacing: 12
             MoneroComponents.LineEdit {
                 Layout.fillWidth: true
-                labelText: qsTr("Leaderboard service URL") + translationManager.emptyString
+                labelText: qsTr("Leaderboard server URL (default: the one run by your sm64coin launcher)") + translationManager.emptyString
                 text: persistentSettings.sm64LeaderboardUrl
                 onTextChanged: persistentSettings.sm64LeaderboardUrl = text
             }
@@ -165,7 +165,7 @@ Rectangle {
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
             Layout.bottomMargin: 20
-            text: qsTr("Privacy: joining sends this wallet's address and secret view key to the leaderboard service, so its operator can see all incoming payments to this wallet (but cannot spend). Anyone can run their own leaderboard service; set its URL above. Leave removes the entry. Your display name and block count are public.") + translationManager.emptyString
+            text: qsTr("Privacy: joining gives this wallet's address and secret view key to your leaderboard server, and if you rank in the top 50 it is shared with the other leaderboard servers on the network. Everyone who runs one can then see all incoming payments to this wallet (they cannot spend). Use a dedicated mining address, not your main wallet. Leave removes the entry from your server only; servers that already learned it may keep it. Your display name and block count are public.") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.orange
             font.family: MoneroComponents.Style.fontRegular.name
