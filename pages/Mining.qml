@@ -80,6 +80,13 @@ Rectangle {
             if ((m = /^block (\d+) on /.exec(line))) { curHeight = parseInt(m[1]); attempts += 1; }
             else if ((m = /BLOCK (\d+) ACCEPTED/.exec(line))) { wins += 1; lastEvent = qsTr("Block %1 accepted").arg(m[1]); }
             else if (/giving up/.test(line)) lastEvent = qsTr("Gave up an attempt, trying a new template");
+            // The route's stages (the RH miner), or the old beam miner's reference index.
+            else if ((m = /frame\s+(\d+)\s+obj\s+(\d+)\/(\d+)/.exec(line))) {
+                refProgress = qsTr("stage %1 of %2, frame %3").arg(m[2]).arg(m[3]).arg(m[1]);
+            }
+            else if ((m = /objective (\d+) met at frame (\d+)/.exec(line))) {
+                refProgress = qsTr("stage %1 done at frame %2").arg(m[1]).arg(m[2]);
+            }
             else if ((m = /step\s+\d+\s+ref\s+(\d+)\/(\d+)/.exec(line))) {
                 refProgress = Math.round(100 * parseInt(m[1]) / Math.max(1, parseInt(m[2]))) + "%";
             }
@@ -105,7 +112,7 @@ Rectangle {
 
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
-            text: qsTr("SM64Coin is mined by playing Super Mario 64, not by hashing. A block is sealed by a controller input sequence that, replayed on an emulated Nintendo 64 from power-on, makes Mario get a star while the controller is randomly poked. Blocks come about every 5 minutes; a mined reward unlocks after 10 blocks (about 50 minutes).") + translationManager.emptyString
+            text: qsTr("SM64Coin is mined by playing Super Mario 64, not by hashing. A block is sealed by a controller input sequence that, replayed on an emulated Nintendo 64 from power-on, makes Mario get a star while the controller is randomly poked. Blocks come about every 5 minutes; a mined reward unlocks after 4 more blocks (about 20 minutes).") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.defaultFontColor
             font.family: MoneroComponents.Style.fontRegular.name
@@ -180,7 +187,7 @@ Rectangle {
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
             objectName: "progressLine"
-            text: qsTr("Block height: %1   Reference progress: %2   Attempts: %3   Wins this session: %4").arg(curHeight || "-").arg(refProgress || "-").arg(attempts).arg(wins) + (lastEvent ? "   |   " + lastEvent : "")
+            text: qsTr("Block height: %1   Progress: %2   Attempts: %3   Wins this session: %4").arg(curHeight || "-").arg(refProgress || "-").arg(attempts).arg(wins) + (lastEvent ? "   |   " + lastEvent : "")
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.defaultFontColor
             font.family: MoneroComponents.Style.fontRegular.name

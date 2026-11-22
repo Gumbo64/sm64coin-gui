@@ -39,16 +39,9 @@ Rectangle {
     property string walletAddress: currentWallet ? currentWallet.address(0, 0) : ""
     property string statusText: ""
     property bool statusIsError: false
-    property bool loading: false
     property int nextId: 1
     property var pending: ({})
 
-    function fmtReward(atomic) {
-        // 12 decimals; the number may exceed 2^53 only for absurd rewards, so use string math
-        var s = String(Math.round(atomic));
-        while (s.length < 13) s = "0" + s;
-        return s.slice(0, s.length - 12) + "." + s.slice(s.length - 12);
-    }
     function base() { return persistentSettings.sm64LeaderboardUrl.replace(/\/+$/, ""); }
     function call(method, path, body, cb) {
         var id = nextId++;
@@ -66,27 +59,10 @@ Rectangle {
             cb(status, data, text);
         }
     }
-    function refresh() {
-        loading = true;
-        call("GET", "/leaderboard", null, function(status, data, text) {
-            loading = false;
-            if (status === 200 && Array.isArray(data)) {
-                board.clear();
-                for (var i = 0; i < data.length; i++) {
-                    var d = data[i];
-                    board.append({ rank: i + 1, name: d.name, addr: d.address_short, blocks: d.blocks,
-                                   reward: fmtReward(d.reward_atomic), frames: d.best_frames > 0 ? d.best_frames : 0 });
-                }
-                if (data.length === 0) setStatus(qsTr("No participants yet."), false);
-            } else {
-                setStatus(qsTr("Could not load the leaderboard: ") + ((data && data.error) ? data.error : (text || "HTTP " + status)), true);
-            }
-        });
-    }
     function setStatus(t, err) { statusText = t; statusIsError = err; }
     function reply(okMsg) {
         return function(status, data, text) {
-            if (status === 200) { setStatus(okMsg, false); refresh(); }
+            if (status === 200) setStatus(okMsg, false);
             else setStatus((data && data.error) ? data.error : (text || "HTTP " + status), true);
         };
     }
@@ -101,10 +77,10 @@ Rectangle {
         call("POST", "/unregister", { address: walletAddress, view_key: currentWallet.secretViewKey },
              reply(qsTr("Left the leaderboard.")));
     }
-    function onPageCompleted() { refresh(); }
-    Component.onCompleted: refresh()
-
-    ListModel { id: board }
+    // The standings themselves are on the website (read-only, no keys).
+    function standingsUrl() {
+        return persistentSettings.sm64WebMinerUrl.replace(/\/mine\/?$/, "").replace(/\/+$/, "") + "/leaderboard";
+    }
 
     ColumnLayout {
         id: mainLayout
@@ -121,6 +97,15 @@ Rectangle {
             text: qsTr("Leaderboard") + translationManager.emptyString
         }
 
+        MoneroComponents.TextPlain {
+            Layout.fillWidth: true
+            text: qsTr("Opt in to the public SM64Coin leaderboard with this wallet. The standings are on the website.") + translationManager.emptyString
+            wrapMode: Text.Wrap
+            color: MoneroComponents.Style.defaultFontColor
+            font.family: MoneroComponents.Style.fontRegular.name
+            font.pixelSize: 14
+        }
+
         RowLayout {
             Layout.fillWidth: true
             spacing: 12
@@ -132,69 +117,16 @@ Rectangle {
             }
             MoneroComponents.StandardButton {
                 small: true
-                text: loading ? qsTr("Loading...") : qsTr("Refresh")
-                onClicked: refresh()
+                primary: false
+                text: qsTr("View standings") + translationManager.emptyString
+                onClicked: Qt.openUrlExternally(standingsUrl())
             }
-        }
-
-        // header
-        Rectangle {
-            Layout.fillWidth: true
-            height: 28
-            color: "transparent"
-            Row {
-                anchors.fill: parent
-                spacing: 0
-                Repeater {
-                    model: [[qsTr("Rank"), 0.07], [qsTr("Name"), 0.22], [qsTr("Address"), 0.22], [qsTr("Blocks"), 0.1], [qsTr("Reward (SM64)"), 0.22], [qsTr("Best frames"), 0.17]]
-                    MoneroComponents.TextPlain {
-                        width: mainLayout.width * modelData[1]
-                        text: modelData[0]
-                        color: MoneroComponents.Style.dimmedFontColor
-                        font.family: MoneroComponents.Style.fontMedium.name
-                        font.pixelSize: 13
-                    }
-                }
-            }
-        }
-        Repeater {
-            model: board
-            Rectangle {
-                Layout.fillWidth: true
-                height: 28
-                color: "transparent"
-                Row {
-                    anchors.fill: parent
-                    Repeater {
-                        model: [[rank, 0.07], [name, 0.22], [addr, 0.22], [blocks, 0.1], [reward, 0.22], [frames || "-", 0.17]]
-                        MoneroComponents.TextPlain {
-                            width: mainLayout.width * modelData[1]
-                            text: String(modelData[0])
-                            elide: Text.ElideRight
-                            color: MoneroComponents.Style.defaultFontColor
-                            font.family: MoneroComponents.Style.fontRegular.name
-                            font.pixelSize: 14
-                        }
-                    }
-                }
-            }
-        }
-
-        MoneroComponents.TextPlain {
-            Layout.fillWidth: true
-            objectName: "boardStatus"
-            visible: statusText !== ""
-            text: statusText
-            wrapMode: Text.Wrap
-            color: statusIsError ? MoneroComponents.Style.errorColor : MoneroComponents.Style.green
-            font.family: MoneroComponents.Style.fontRegular.name
-            font.pixelSize: 14
         }
 
         MoneroComponents.Label {
             fontSize: 18
             Layout.topMargin: 10
-            text: qsTr("Join with this wallet") + translationManager.emptyString
+            text: qsTr("This wallet") + translationManager.emptyString
         }
         RowLayout {
             Layout.fillWidth: true
@@ -221,8 +153,19 @@ Rectangle {
         }
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
+            objectName: "boardStatus"
+            visible: statusText !== ""
+            text: statusText
+            wrapMode: Text.Wrap
+            color: statusIsError ? MoneroComponents.Style.errorColor : MoneroComponents.Style.green
+            font.family: MoneroComponents.Style.fontRegular.name
+            font.pixelSize: 14
+        }
+
+        MoneroComponents.TextPlain {
+            Layout.fillWidth: true
             Layout.bottomMargin: 20
-            text: qsTr("Privacy: joining sends this wallet's address and secret view key to the leaderboard service, so its operator can see all incoming payments to this wallet (but cannot spend). Anyone can run their own leaderboard service; set its URL above. Leave removes the entry.") + translationManager.emptyString
+            text: qsTr("Privacy: joining sends this wallet's address and secret view key to the leaderboard service, so its operator can see all incoming payments to this wallet (but cannot spend). Anyone can run their own leaderboard service; set its URL above. Leave removes the entry. Your display name and block count are public.") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.orange
             font.family: MoneroComponents.Style.fontRegular.name
