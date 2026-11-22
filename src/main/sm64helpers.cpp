@@ -24,12 +24,27 @@ bool MinerProcess::fileExists(const QString &path) const { return QFileInfo(path
 
 QString MinerProcess::start(const QString &program, const QStringList &args, int threads)
 {
+    return startImpl(program, args, threads, QStringList());
+}
+
+QString MinerProcess::startWithEnv(const QString &program, const QStringList &args, int threads, const QStringList &extraEnv)
+{
+    return startImpl(program, args, threads, extraEnv);
+}
+
+QString MinerProcess::startImpl(const QString &program, const QStringList &args, int threads, const QStringList &extraEnv)
+{
     if (running())
         return QStringLiteral("already running");
     if (!QFileInfo(program).isExecutable())
         return QStringLiteral("not an executable file: ") + program;
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("RAYON_NUM_THREADS", QString::number(threads > 0 ? threads : 4));
+    for (const QString &kv : extraEnv) {
+        int eq = kv.indexOf('=');
+        if (eq > 0)
+            env.insert(kv.left(eq), kv.mid(eq + 1));
+    }
     m_proc.setProcessEnvironment(env);
     m_buf.clear();
     m_proc.start(program, args);

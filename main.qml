@@ -1522,6 +1522,7 @@ ApplicationWindow {
         property string sm64WebMinerUrl: "http://localhost:5181/mine"
         property string sm64LeaderboardUrl: "http://127.0.0.1:16490"
         property string sm64LeaderboardName: ""
+        property bool   sm64LeaderboardOnChain: false
         property bool   miningIgnoreBattery : true
         property int    miningModeSelected: 0
         property int    chainDropdownSelected: 0

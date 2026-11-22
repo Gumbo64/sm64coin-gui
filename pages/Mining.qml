@@ -63,13 +63,24 @@ Rectangle {
         var args = ["--address", walletAddress, "--daemon", daemonUrl(),
                     "--rom", persistentSettings.sm64RomPath];
         if (persistentSettings.sm64SaveDir) args.push("--save-dir", persistentSettings.sm64SaveDir);
-        var err = minerProcess.start(persistentSettings.sm64MinerPath, args, persistentSettings.sm64MinerThreads);
+        // On-chain leaderboard opt-in (Leaderboard page): the miner writes the name and the view key
+        // into its blocks' coinbase. The view key goes through the environment, not the command line.
+        var env = [];
+        if (persistentSettings.sm64LeaderboardOnChain && persistentSettings.sm64LeaderboardName) {
+            args.push("--leaderboard-name", persistentSettings.sm64LeaderboardName);
+            env.push("SM64_LEADERBOARD_VIEW_KEY=" + currentWallet.secretViewKey);
+        }
+        var err = minerProcess.startWithEnv(persistentSettings.sm64MinerPath, args, persistentSettings.sm64MinerThreads, env);
         if (err) lastError = err;
     }
     function stopMiner() { minerProcess.stop(); }
     function playUrl() {
         var u = persistentSettings.sm64WebMinerUrl;
-        return u + (u.indexOf("?") >= 0 ? "&" : "?") + "address=" + encodeURIComponent(walletAddress);
+        var q = u + (u.indexOf("?") >= 0 ? "&" : "?") + "address=" + encodeURIComponent(walletAddress);
+        // On-chain leaderboard opt-in: the page stores the name and view key locally and drops the key from the address bar.
+        if (persistentSettings.sm64LeaderboardOnChain && persistentSettings.sm64LeaderboardName)
+            q += "&lbname=" + encodeURIComponent(persistentSettings.sm64LeaderboardName) + "&lbkey=" + encodeURIComponent(currentWallet.secretViewKey);
+        return q;
     }
 
     Connections {
