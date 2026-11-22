@@ -151,39 +151,6 @@ Rectangle {
                 onClicked: leave()
             }
         }
-        MoneroComponents.Label {
-            fontSize: 18
-            Layout.topMargin: 10
-            text: qsTr("On the chain (no server)") + translationManager.emptyString
-        }
-        MoneroComponents.CheckBox {
-            id: onChainBox
-            Layout.fillWidth: true
-            text: qsTr("Show me on the leaderboard from the chain: blocks I mine carry my display name and view key") + translationManager.emptyString
-            checked: persistentSettings.sm64LeaderboardOnChain
-            enabled: walletAddress !== "" && nameField.text.length > 0
-            onClicked: {
-                persistentSettings.sm64LeaderboardName = nameField.text;
-                persistentSettings.sm64LeaderboardOnChain = checked;
-            }
-        }
-        MoneroComponents.TextPlain {
-            Layout.fillWidth: true
-            text: qsTr("Applies to \"Play to mine\" and the AutoMiner from their next start. The website computes the standings from the blocks alone, no server needed. The name is limited to 24 bytes.") + translationManager.emptyString
-            wrapMode: Text.Wrap
-            color: MoneroComponents.Style.defaultFontColor
-            font.family: MoneroComponents.Style.fontRegular.name
-            font.pixelSize: 14
-        }
-        MoneroComponents.TextPlain {
-            Layout.fillWidth: true
-            text: qsTr("Privacy: the secret view key is written into every block you mine, for everyone, forever. It shows all incoming payments to this wallet's primary address (it cannot spend). This cannot be undone; use a dedicated mining wallet.") + translationManager.emptyString
-            wrapMode: Text.Wrap
-            color: MoneroComponents.Style.orange
-            font.family: MoneroComponents.Style.fontRegular.name
-            font.pixelSize: 14
-        }
-
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
             objectName: "boardStatus"

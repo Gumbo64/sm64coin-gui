@@ -22,8 +22,6 @@ public:
     Q_INVOKABLE bool fileExists(const QString &path) const;
     // Returns an empty string on success, else an error message.
     Q_INVOKABLE QString start(const QString &program, const QStringList &args, int threads);
-    // Same, with extra environment variables ("NAME=value"): used for secrets that must not show in the command line.
-    Q_INVOKABLE QString startWithEnv(const QString &program, const QStringList &args, int threads, const QStringList &extraEnv);
     Q_INVOKABLE void stop();
 signals:
     void runningChanged();
@@ -32,7 +30,6 @@ signals:
 private slots:
     void onReadyRead();
 private:
-    QString startImpl(const QString &program, const QStringList &args, int threads, const QStringList &extraEnv);
     QProcess m_proc;
     QByteArray m_buf;
 };
