@@ -63,6 +63,10 @@ Rectangle {
         var args = ["--address", walletAddress, "--daemon", daemonUrl(),
                     "--rom", persistentSettings.sm64RomPath];
         if (persistentSettings.sm64SaveDir) args.push("--save-dir", persistentSettings.sm64SaveDir);
+        // The campaign miner's threads, and its scratch (step files, the campaign's memory across
+        // blocks, its roadmap): next to the saved runs, so it lasts between sessions.
+        args.push("--rh-threads", String(persistentSettings.sm64MinerThreads));
+        if (persistentSettings.sm64SaveDir) args.push("--rrt-scratch", persistentSettings.sm64SaveDir + "/campaign");
         var err = minerProcess.start(persistentSettings.sm64MinerPath, args, persistentSettings.sm64MinerThreads);
         if (err) lastError = err;
     }
@@ -80,6 +84,13 @@ Rectangle {
             if ((m = /^block (\d+) on /.exec(line))) { curHeight = parseInt(m[1]); attempts += 1; }
             else if ((m = /BLOCK (\d+) ACCEPTED/.exec(line))) { wins += 1; lastEvent = qsTr("Block %1 accepted").arg(m[1]); }
             else if (/giving up/.test(line)) lastEvent = qsTr("Gave up an attempt, trying a new template");
+            // The campaign miner's steps (castle / course trees, checkpoints).
+            else if ((m = /^step (\d+): (castle at frame \d+[^;]*|\S+ at frame \d+)/.exec(line))) {
+                refProgress = qsTr("step %1: %2").arg(m[1]).arg(m[2]);
+            }
+            else if ((m = /checkpoint (\d+) at node/.exec(line))) {
+                refProgress = qsTr("checkpoint %1").arg(m[1]);
+            }
             // The route's stages (the RH miner), or the old beam miner's reference index.
             else if ((m = /frame\s+(\d+)\s+obj\s+(\d+)\/(\d+)/.exec(line))) {
                 refProgress = qsTr("stage %1 of %2, frame %3").arg(m[2]).arg(m[3]).arg(m[1]);

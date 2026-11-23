@@ -27,7 +27,9 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import QtQml.Models 2.2
-// SM64COIN: leaderboard of participating miners, served by an (optional) leaderboard service.
+// SM64COIN: the mining leaderboard. Every node keeps the top 50 by blocks
+// mined and shares it with its peers over p2p (sm64_board.h); this page
+// reads and joins it through the node's RPC, so it works wherever the node does.
 import QtQuick 2.9
 import QtQuick.Layouts 1.1
 import "../components" as MoneroComponents
@@ -42,11 +44,14 @@ Rectangle {
     property int nextId: 1
     property var pending: ({})
 
-    function base() { return persistentSettings.sm64LeaderboardUrl.replace(/\/+$/, ""); }
-    function call(method, path, body, cb) {
+    function daemonUrl() {
+        var a = (typeof currentDaemonAddress !== "undefined" && currentDaemonAddress) ? currentDaemonAddress : "127.0.0.1:16481";
+        return a.indexOf("://") >= 0 ? a : "http://" + a;
+    }
+    function rpc(method, params, cb) {
         var id = nextId++;
         pending[id] = cb;
-        sm64Http.request(id, method, base() + path, body ? JSON.stringify(body) : "");
+        sm64Http.request(id, "POST", daemonUrl() + "/json_rpc", JSON.stringify({ jsonrpc: "2.0", id: "0", method: method, params: params || {} }));
     }
     Connections {
         target: sm64Http
@@ -60,26 +65,25 @@ Rectangle {
         }
     }
     function setStatus(t, err) { statusText = t; statusIsError = err; }
-    function reply(okMsg) {
-        return function(status, data, text) {
-            if (status === 200) setStatus(okMsg, false);
-            else setStatus((data && data.error) ? data.error : (text || "HTTP " + status), true);
-        };
+    // The standings are on the website (it reads the same board from a node).
+    function standingsUrl() {
+        return persistentSettings.sm64WebMinerUrl.replace(/\/mine\/?$/, "").replace(/\/+$/, "") + "/leaderboard";
     }
     function join() {
         if (!walletAddress) { setStatus(qsTr("Open a wallet first."), true); return; }
-        persistentSettings.sm64LeaderboardName = nameField.text;
-        call("POST", "/register", { name: nameField.text, address: walletAddress, view_key: currentWallet.secretViewKey },
-             reply(qsTr("Joined the leaderboard.")));
-    }
-    function leave() {
-        if (!walletAddress) { setStatus(qsTr("Open a wallet first."), true); return; }
-        call("POST", "/unregister", { address: walletAddress, view_key: currentWallet.secretViewKey },
-             reply(qsTr("Left the leaderboard.")));
-    }
-    // The standings themselves are on the website (read-only, no keys).
-    function standingsUrl() {
-        return persistentSettings.sm64WebMinerUrl.replace(/\/mine\/?$/, "").replace(/\/+$/, "") + "/leaderboard";
+        var name = nameField.text.trim();
+        persistentSettings.sm64LeaderboardName = name;
+        // Signed with this wallet's spend key: only the owner can name the address.
+        // A later timestamp renames it.
+        var ts = Math.floor(Date.now() / 1000);
+        var sig = currentWallet.signMessage("sm64coin-board:" + ts + ":" + name, false);
+        rpc("sm64_board_join", { name: name, address: walletAddress, view_key: currentWallet.secretViewKey, timestamp: ts, signature: sig },
+            function(status, data, text) {
+                if (status === 200 && data && data.result) {
+                    if (data.result.joined) setStatus(qsTr("On the board as \"%1\". Your node shares it with its peers.").arg(name), false);
+                    else setStatus(qsTr("Not on the board: ") + data.result.reason, true);
+                } else setStatus((data && data.error) ? data.error.message : (text || "HTTP " + status), true);
+            });
     }
 
     ColumnLayout {
@@ -99,28 +103,11 @@ Rectangle {
 
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
-            text: qsTr("Opt in to the SM64Coin leaderboard with this wallet. Nodes share the top 50 with each other (not on the blockchain); the standings are on the website. Joining goes to the leaderboard server your sm64coin launcher runs.") + translationManager.emptyString
+            text: qsTr("Put this wallet on the SM64Coin leaderboard: the top 50 miners by blocks mined. Every node keeps the board, counts the blocks itself and shares it with its peers, so joining works wherever your node does. Only addresses that have mined a block can join.") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.defaultFontColor
             font.family: MoneroComponents.Style.fontRegular.name
             font.pixelSize: 14
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 12
-            MoneroComponents.LineEdit {
-                Layout.fillWidth: true
-                labelText: qsTr("Leaderboard server URL (default: the one run by your sm64coin launcher)") + translationManager.emptyString
-                text: persistentSettings.sm64LeaderboardUrl
-                onTextChanged: persistentSettings.sm64LeaderboardUrl = text
-            }
-            MoneroComponents.StandardButton {
-                small: true
-                primary: false
-                text: qsTr("View standings") + translationManager.emptyString
-                onClicked: Qt.openUrlExternally(standingsUrl())
-            }
         }
 
         MoneroComponents.Label {
@@ -139,16 +126,9 @@ Rectangle {
             }
             MoneroComponents.StandardButton {
                 small: true
-                text: qsTr("Join") + translationManager.emptyString
-                enabled: nameField.text.length > 0 && walletAddress !== ""
+                text: qsTr("Join / rename") + translationManager.emptyString
+                enabled: nameField.text.trim().length > 0 && walletAddress !== ""
                 onClicked: join()
-            }
-            MoneroComponents.StandardButton {
-                small: true
-                primary: false
-                text: qsTr("Leave") + translationManager.emptyString
-                enabled: walletAddress !== ""
-                onClicked: leave()
             }
         }
         MoneroComponents.TextPlain {
@@ -162,10 +142,16 @@ Rectangle {
             font.pixelSize: 14
         }
 
+        MoneroComponents.StandardButton {
+            Layout.topMargin: 10
+            text: qsTr("View the leaderboard") + translationManager.emptyString
+            onClicked: Qt.openUrlExternally(standingsUrl())
+        }
+
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
             Layout.bottomMargin: 20
-            text: qsTr("Privacy: joining gives this wallet's address and secret view key to your leaderboard server, and if you rank in the top 50 it is shared with the other leaderboard servers on the network. Everyone who runs one can then see all incoming payments to this wallet (they cannot spend). Use a dedicated mining address, not your main wallet. Leave removes the entry from your server only; servers that already learned it may keep it. Your display name and block count are public.") + translationManager.emptyString
+            text: qsTr("Privacy: joining gives this wallet's address and secret view key to every node on the network (so each can count your blocks itself). Anyone can then see all incoming payments to this wallet (they cannot spend). Use a dedicated mining address, not your main wallet. Your name and block count are public, and an entry can't be removed once shared; you can rename it.") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.orange
             font.family: MoneroComponents.Style.fontRegular.name
