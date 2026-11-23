@@ -1515,11 +1515,13 @@ ApplicationWindow {
         property bool   allow_p2pool_mining : false
         property bool   allowRemoteNodeMining : false
         // SM64COIN: mining / leaderboard page settings
-        property string sm64MinerPath: "/workspaces/sm64-combined/sm64-crypto3/bin/sm64coin-automine"
-        property string sm64RomPath: "/workspaces/sm64-combined/sm64-crypto3/baserom.us.z64"
-        property string sm64SaveDir: "/workspaces/sm64-combined/sm64-crypto3/run/mined"
-        property int    sm64MinerThreads: 4
-        property string sm64WebMinerUrl: "https://gumbo64.github.io/sm64coin/mine"
+        // Empty = automatic (the bundle's sm64coin-automine, the ROM the launcher found, ~/.sm64coin/...):
+        // see MinerProcess::default*() in src/main/sm64helpers.cpp. Threads 0 = all cores but one.
+        property string sm64MinerPath: ""
+        property string sm64RomPath: ""
+        property string sm64SaveDir: ""
+        property int    sm64MinerThreads: 0
+        property string sm64WebMinerUrl: "" // empty: the local site if it answers, else GitHub Pages (Sm64Http::openSite)
         property string sm64LeaderboardUrl: "http://127.0.0.1:16490"
         property string sm64LeaderboardName: ""
         property bool   miningIgnoreBattery : true

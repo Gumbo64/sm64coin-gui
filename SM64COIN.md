@@ -56,7 +56,11 @@ QT_QPA_PLATFORM=offscreen build/bin/monero-wallet-gui --log-level 2 --daemon-add
   (QML timer off, `WITH_UPDATER=OFF`); donation button hidden (Monero address).
 - `pages/Mining.qml` replaced (SM64Coin is mined by playing): "Play to mine" opens the web miner with `?address=<wallet>`;
   Start/Stop runs `sm64coin-automine` as a child process (`MinerProcess`, `src/main/sm64helpers.*`) with the wallet's
-  address and daemon, RAYON_NUM_THREADS from settings; paths/URLs persisted as `sm64*` settings in main.qml.
+  address and daemon, RAYON_NUM_THREADS from settings; paths/URLs persisted as `sm64*` settings in main.qml. Empty paths are automatic
+  (`sm64paths` in `sm64helpers.cpp`): the bundle's `sm64coin-automine`, the ROM from `$SM64COIN_ROM` (the launcher sets it and
+  `$SM64COIN_DATA_DIR`) or next to the bundle / in `~/.sm64coin`, SHA-1 checked; saves in `<data dir>/mined`, campaign scratch
+  `<data dir>/miner` (the launcher's `--mine` uses the same).
+- Local node: `DaemonManager` runs the bundle's `sm64coind` (macOS: next to the .app) with `--sm64-rom` from the same search.
 - New `pages/Leaderboard.qml` (Advanced > Leaderboard): lists `GET <url>/leaderboard`, Join/Leave POST address + secret
   view key to /register, /unregister. HTTP goes through `Sm64Http` (QML's own network access is blocked by the fork).
 - Address validation is libwallet's (`addressValid`), which uses the fork's SM64 prefixes.

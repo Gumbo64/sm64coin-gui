@@ -54,34 +54,54 @@ Rectangle {
         var a = (typeof currentDaemonAddress !== "undefined" && currentDaemonAddress) ? currentDaemonAddress : "127.0.0.1:16481";
         return a.indexOf("://") >= 0 ? a : "http://" + a;
     }
+    // Settings left empty mean "automatic". The defaults of builds before 0.2.2 were paths of the
+    // developer's checkout; they count as empty.
+    readonly property var oldDefaults: ["/workspaces/sm64-combined/sm64-crypto3/bin/sm64coin-automine",
+                                        "/workspaces/sm64-combined/sm64-crypto3/baserom.us.z64",
+                                        "/workspaces/sm64-combined/sm64-crypto3/run/mined"]
+    function setting(v) { return (v && oldDefaults.indexOf(v) < 0) ? v : ""; }
+    function minerPath() { return setting(persistentSettings.sm64MinerPath) || minerProcess.defaultMinerPath(); }
+    function romPath() { return setting(persistentSettings.sm64RomPath) || minerProcess.defaultRomPath(); }
+    function saveDir() { return setting(persistentSettings.sm64SaveDir) || minerProcess.defaultSaveDir(); }
+    function minerThreads() { return persistentSettings.sm64MinerThreads > 0 ? persistentSettings.sm64MinerThreads : minerProcess.defaultThreads(); }
+    Component.onCompleted: {
+        // Clear the old defaults so the fields show the automatic values.
+        ["sm64MinerPath", "sm64RomPath", "sm64SaveDir"].forEach(function(k) {
+            if (oldDefaults.indexOf(persistentSettings[k]) >= 0) persistentSettings[k] = "";
+        });
+        if (["http://localhost:5181/mine", "https://gumbo64.github.io/sm64coin/mine"].indexOf(persistentSettings.sm64WebMinerUrl) >= 0)
+            persistentSettings.sm64WebMinerUrl = "";
+    }
     function startMiner() {
         if (!walletAddress) { lastError = qsTr("Open a wallet first."); return; }
-        if (!minerProcess.fileExists(persistentSettings.sm64RomPath)) {
-            lastError = qsTr("ROM not found: ") + persistentSettings.sm64RomPath; return;
+        var miner = minerPath(), rom = romPath();
+        if (!miner) { lastError = qsTr("The automated miner (sm64coin-automine) is not next to the wallet app: give its path below."); return; }
+        if (!rom || !minerProcess.fileExists(rom)) {
+            lastError = rom ? qsTr("ROM not found: ") + rom
+                            : qsTr("No US Super Mario 64 ROM found (next to sm64coin, or in ~/.sm64coin/): give its path below.");
+            return;
         }
         logLines = []; curHeight = 0; refProgress = ""; attempts = 0; wins = 0; lastEvent = ""; lastError = "";
-        var args = ["--address", walletAddress, "--daemon", daemonUrl(),
-                    "--rom", persistentSettings.sm64RomPath];
-        if (persistentSettings.sm64SaveDir) args.push("--save-dir", persistentSettings.sm64SaveDir);
+        var args = ["--address", walletAddress, "--daemon", daemonUrl(), "--rom", rom, "--save-dir", saveDir()];
         // The campaign miner's threads, and its scratch (step files, the campaign's memory across
-        // blocks, its roadmap): next to the saved runs, so it lasts between sessions.
-        args.push("--rh-threads", String(persistentSettings.sm64MinerThreads));
-        if (persistentSettings.sm64SaveDir) args.push("--rrt-scratch", persistentSettings.sm64SaveDir + "/campaign");
-        var err = minerProcess.start(persistentSettings.sm64MinerPath, args, persistentSettings.sm64MinerThreads);
+        // blocks, its roadmap): the same folder the launcher's --mine uses, so it lasts between sessions.
+        args.push("--rh-threads", String(minerThreads()));
+        args.push("--rrt-scratch", setting(persistentSettings.sm64SaveDir) ? persistentSettings.sm64SaveDir + "/campaign" : minerProcess.defaultScratchDir());
+        var route = minerProcess.defaultRoute();
+        if (route) args.push("--route", route);
+        var err = minerProcess.start(miner, args, minerThreads());
         if (err) lastError = err;
     }
     function stopMiner() { minerProcess.stop(); }
-    // The site: the GitHub Pages one by default (it uses this computer's node if one answers,
-    // else the public node). The old default (the launcher's local site, http://localhost:5181,
-    // dead when the wallet runs without the launcher) counts as the default.
-    function webMinerUrl() {
-        var u = persistentSettings.sm64WebMinerUrl;
-        return (!u || u === "http://localhost:5181/mine") ? "https://gumbo64.github.io/sm64coin/mine" : u;
+    // The site: this computer's (the launcher's) when it answers, GitHub Pages as the last resort;
+    // a URL in the setting below is used as is.
+    function play() { sm64Http.openSite(persistentSettings.sm64WebMinerUrl, "/mine?address=" + encodeURIComponent(walletAddress)); }
+
+    Connections {
+        target: sm64Http
+        onSiteOpened: playOpened = url
     }
-    function playUrl() {
-        var u = webMinerUrl();
-        return u + (u.indexOf("?") >= 0 ? "&" : "?") + "address=" + encodeURIComponent(walletAddress);
-    }
+    property string playOpened: ""
 
     Connections {
         target: minerProcess
@@ -149,11 +169,19 @@ Rectangle {
             fontSize: 20
             text: qsTr("Play to mine ▶") + translationManager.emptyString
             enabled: walletAddress !== ""
-            onClicked: Qt.openUrlExternally(playUrl())
+            onClicked: play()
+        }
+        MoneroComponents.TextPlain {
+            visible: playOpened !== ""
+            text: qsTr("Opened %1 in your browser.").arg(playOpened.split("?")[0]) + translationManager.emptyString
+            color: MoneroComponents.Style.dimmedFontColor
+            font.family: MoneroComponents.Style.fontRegular.name
+            font.pixelSize: 14
         }
         MoneroComponents.LineEdit {
             Layout.fillWidth: true
             labelText: qsTr("Web miner URL") + translationManager.emptyString
+            placeholderText: qsTr("automatic: this computer's site (http://localhost:5181), else gumbo64.github.io") + translationManager.emptyString
             text: persistentSettings.sm64WebMinerUrl
             onTextChanged: persistentSettings.sm64WebMinerUrl = text
         }
@@ -235,32 +263,36 @@ Rectangle {
         MoneroComponents.LineEdit {
             Layout.fillWidth: true
             labelText: qsTr("Automine program") + translationManager.emptyString
+            placeholderText: qsTr("automatic: ") + (minerProcess.defaultMinerPath() || qsTr("not found: give the path of sm64coin-automine"))
             text: persistentSettings.sm64MinerPath
             onTextChanged: persistentSettings.sm64MinerPath = text
         }
         MoneroComponents.LineEdit {
             Layout.fillWidth: true
             labelText: qsTr("US Super Mario 64 ROM") + translationManager.emptyString
+            placeholderText: qsTr("automatic: ") + (minerProcess.defaultRomPath() || qsTr("not found: give the path of your US .z64"))
             text: persistentSettings.sm64RomPath
             onTextChanged: persistentSettings.sm64RomPath = text
         }
         MoneroComponents.LineEdit {
             Layout.fillWidth: true
             labelText: qsTr("Save mined proofs to (directory)") + translationManager.emptyString
+            placeholderText: qsTr("automatic: ") + (minerProcess.defaultSaveDir())
             text: persistentSettings.sm64SaveDir
             onTextChanged: persistentSettings.sm64SaveDir = text
         }
         MoneroComponents.LineEdit {
             Layout.preferredWidth: 200
             labelText: qsTr("Simulation threads") + translationManager.emptyString
-            text: persistentSettings.sm64MinerThreads
+            placeholderText: qsTr("automatic: ") + minerProcess.defaultThreads()
+            text: persistentSettings.sm64MinerThreads > 0 ? persistentSettings.sm64MinerThreads : ""
             input.inputMethodHints: Qt.ImhDigitsOnly
-            onTextChanged: { var n = parseInt(text); if (n > 0 && n <= 256) persistentSettings.sm64MinerThreads = n; }
+            onTextChanged: { var n = parseInt(text); persistentSettings.sm64MinerThreads = (n > 0 && n <= 256) ? n : 0; }
         }
         MoneroComponents.TextPlain {
             Layout.fillWidth: true
             Layout.bottomMargin: 20
-            text: qsTr("Uses the daemon this wallet is connected to and pays the rewards to this wallet's primary address. Changes apply the next time you press Start.") + translationManager.emptyString
+            text: qsTr("Uses the daemon this wallet is connected to and pays the rewards to this wallet's primary address. Leave a field empty for the automatic value. Changes apply the next time you press Start.") + translationManager.emptyString
             wrapMode: Text.Wrap
             color: MoneroComponents.Style.dimmedFontColor
             font.family: MoneroComponents.Style.fontRegular.name

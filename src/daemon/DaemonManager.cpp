@@ -27,6 +27,7 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "DaemonManager.h"
+#include "main/sm64helpers.h" // SM64COIN
 #include "common/util.h"
 #include <QElapsedTimer>
 #include <QFile>
@@ -103,6 +104,12 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     // does the same; the RPC stays on 127.0.0.1).
     if (!flags.contains("--rpc-access-control-origins")) {
         arguments << "--rpc-access-control-origins" << "https://gumbo64.github.io";
+    }
+    // SM64Coin: every node replays the blocks it verifies, so it needs the ROM; the daemon itself only
+    // looks in its data dir, $SM64COIN_ROM, ./ and ~/.sm64coin/, not in the bundle folder.
+    const QString sm64Rom = flags.contains("--sm64-rom") ? QString() : sm64paths::findRom();
+    if (!sm64Rom.isEmpty()) {
+        arguments << "--sm64-rom" << sm64Rom;
     }
 
     // --max-concurrency based on threads available.
@@ -409,6 +416,7 @@ DaemonManager::DaemonManager(QObject *parent)
 #elif defined(Q_OS_UNIX)
     m_monerod = QApplication::applicationDirPath() + "/monerod";
 #endif
+    if (!sm64paths::program("sm64coind").isEmpty()) m_monerod = sm64paths::program("sm64coind"); // SM64COIN: the bundle's daemon (macOS: next to the .app)
 
     if (m_monerod.length() == 0) {
         qCritical() << "no daemon binary defined for current platform";

@@ -65,12 +65,8 @@ Rectangle {
         }
     }
     function setStatus(t, err) { statusText = t; statusIsError = err; }
-    // The standings are on the website (it reads the same board from a node).
-    function standingsUrl() {
-        var u = persistentSettings.sm64WebMinerUrl;
-        if (!u || u === "http://localhost:5181/mine") u = "https://gumbo64.github.io/sm64coin/mine";
-        return u.replace(/\/mine\/?$/, "").replace(/\/+$/, "") + "/leaderboard";
-    }
+    // The standings are on the website (it reads the same board from a node): the local site
+    // first, GitHub Pages as the last resort (Sm64Http::openSite).
     function join() {
         if (!walletAddress) { setStatus(qsTr("Open a wallet first."), true); return; }
         var name = nameField.text.trim();
@@ -147,7 +143,7 @@ Rectangle {
         MoneroComponents.StandardButton {
             Layout.topMargin: 10
             text: qsTr("View the leaderboard") + translationManager.emptyString
-            onClicked: Qt.openUrlExternally(standingsUrl())
+            onClicked: sm64Http.openSite(persistentSettings.sm64WebMinerUrl, "/leaderboard")
         }
 
         MoneroComponents.TextPlain {
