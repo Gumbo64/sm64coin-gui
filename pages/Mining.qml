@@ -71,8 +71,15 @@ Rectangle {
         if (err) lastError = err;
     }
     function stopMiner() { minerProcess.stop(); }
-    function playUrl() {
+    // The site: the GitHub Pages one by default (it uses this computer's node if one answers,
+    // else the public node). The old default (the launcher's local site, http://localhost:5181,
+    // dead when the wallet runs without the launcher) counts as the default.
+    function webMinerUrl() {
         var u = persistentSettings.sm64WebMinerUrl;
+        return (!u || u === "http://localhost:5181/mine") ? "https://gumbo64.github.io/sm64coin/mine" : u;
+    }
+    function playUrl() {
+        var u = webMinerUrl();
         return u + (u.indexOf("?") >= 0 ? "&" : "?") + "address=" + encodeURIComponent(walletAddress);
     }
 

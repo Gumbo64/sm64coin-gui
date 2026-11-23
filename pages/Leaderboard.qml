@@ -67,7 +67,9 @@ Rectangle {
     function setStatus(t, err) { statusText = t; statusIsError = err; }
     // The standings are on the website (it reads the same board from a node).
     function standingsUrl() {
-        return persistentSettings.sm64WebMinerUrl.replace(/\/mine\/?$/, "").replace(/\/+$/, "") + "/leaderboard";
+        var u = persistentSettings.sm64WebMinerUrl;
+        if (!u || u === "http://localhost:5181/mine") u = "https://gumbo64.github.io/sm64coin/mine";
+        return u.replace(/\/mine\/?$/, "").replace(/\/+$/, "") + "/leaderboard";
     }
     function join() {
         if (!walletAddress) { setStatus(qsTr("Open a wallet first."), true); return; }

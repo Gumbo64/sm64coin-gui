@@ -99,6 +99,12 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     arguments << "--check-updates" << "disabled";
     arguments << "--non-interactive";
 
+    // SM64Coin: the website on GitHub Pages calls this node from the browser (the launcher
+    // does the same; the RPC stays on 127.0.0.1).
+    if (!flags.contains("--rpc-access-control-origins")) {
+        arguments << "--rpc-access-control-origins" << "https://gumbo64.github.io";
+    }
+
     // --max-concurrency based on threads available.
     int32_t concurrency = qMax(1, QThread::idealThreadCount() / 2);
 
