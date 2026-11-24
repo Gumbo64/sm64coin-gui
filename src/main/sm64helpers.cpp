@@ -9,6 +9,11 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QThread>
+#ifdef Q_OS_WIN
+#include <windows.h>
+#else
+#include <sys/resource.h>
+#endif
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcessEnvironment>
@@ -114,9 +119,17 @@ QString MinerProcess::start(const QString &program, const QStringList &args, int
     env.insert("RAYON_NUM_THREADS", QString::number(threads > 0 ? threads : 4));
     m_proc.setProcessEnvironment(env);
     m_buf.clear();
+    // Low CPU priority: the miner uses every core but one, and at normal priority it starved the
+    // node and the website (pages took long to load while mining). Its search children inherit it.
+#ifdef Q_OS_WIN
+    m_proc.setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments *a) { a->flags |= BELOW_NORMAL_PRIORITY_CLASS; });
+#endif
     m_proc.start(program, args);
     if (!m_proc.waitForStarted(3000))
         return QStringLiteral("failed to start: ") + m_proc.errorString();
+#ifndef Q_OS_WIN
+    setpriority(PRIO_PROCESS, static_cast<id_t>(m_proc.processId()), 10);
+#endif
     return QString();
 }
 
