@@ -1,3 +1,5 @@
 var GUI_VERSION_NUMBER = "@VERSION@"
 var GUI_VERSION_TAG = "@VERSION_TAG_GUI@";
 var GUI_VERSION = GUI_VERSION_NUMBER + "-" + GUI_VERSION_TAG
+// SM64COIN: the SM64Coin release this build is (cmake -DSM64COIN_VERSION=<tag without v>); "dev" = no update notice
+var SM64COIN_VERSION = "@SM64COIN_VERSION@"

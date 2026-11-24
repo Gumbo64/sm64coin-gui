@@ -1619,6 +1619,8 @@ ApplicationWindow {
         property int lockOnUserInActivityInterval: 10  // minutes
         property bool blackTheme: MoneroComponents.Style.blackTheme
         property bool checkForUpdates: false // SM64COIN
+        property bool checkSm64Updates: true // SM64COIN: "update available" notice (GitHub releases)
+        property string sm64LatestRelease: "" // SM64COIN: cache of the last releases/latest answer
         property bool autosave: true
         property int autosaveMinutes: 10
         property bool pruneBlockchain: false
@@ -2136,6 +2138,14 @@ ApplicationWindow {
             onCloseClicked: appWindow.close();
             onMaximizeClicked: appWindow.visibility = appWindow.visibility !== Window.Maximized ? Window.Maximized : Window.Windowed
             onMinimizeClicked: appWindow.visibility = Window.Minimized
+        }
+
+        // SM64COIN: "SM64Coin X.Y.Z is available" bar
+        UpdateBanner {
+            z: 50
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: titleBar.visible ? titleBar.bottom : parent.top
         }
 
         // new ToolTip

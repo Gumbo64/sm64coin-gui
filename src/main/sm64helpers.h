@@ -113,6 +113,10 @@ public:
     void setServer(Sm64WebServer *s) { m_server = s; }
     // The wallet's current node, so the site's /json_rpc reaches the same one.
     Q_INVOKABLE void setNode(const QString &addr) { if (m_server) m_server->setRpc(addr); }
+    // "Update available" check: GitHub's latest release (SM64COIN_UPDATE_URL overrides it, for tests)
+    // and SM64COIN_VERSION_OVERRIDE (the version to pretend to be, for tests).
+    Q_INVOKABLE QString updateUrl() const { const QString e = qEnvironmentVariable("SM64COIN_UPDATE_URL"); return e.isEmpty() ? QStringLiteral("https://api.github.com/repos/Gumbo64/sm64coin/releases/latest") : e; }
+    Q_INVOKABLE QString versionOverride() const { return qEnvironmentVariable("SM64COIN_VERSION_OVERRIDE"); }
     Q_INVOKABLE QString localUrl() const { return m_server ? m_server->baseUrl() : QString(); }
     Q_INVOKABLE void request(int id, const QString &method, const QString &url, const QString &jsonBody);
     // Opens a page of the website (`path`, e.g. "/mine?address=..."): `custom` (a site URL from the

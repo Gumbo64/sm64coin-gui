@@ -114,6 +114,8 @@ include(CMakePackageConfigHelpers)
 include_directories(${EASYLOGGING_INCLUDE})
 link_directories(${EASYLOGGING_LIBRARY_DIRS})
 
+# SM64COIN: the release version this build is (the release workflow passes the tag); "dev" = no update notice
+set(SM64COIN_VERSION "dev" CACHE STRING "SM64Coin release version of this build")
 include(VersionGui)
 
 message(STATUS "${CMAKE_MODULE_PATH}")

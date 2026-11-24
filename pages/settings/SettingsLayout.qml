@@ -61,6 +61,12 @@ Rectangle {
         }
 
         MoneroComponents.CheckBox {
+            checked: persistentSettings.checkSm64Updates
+            onClicked: persistentSettings.checkSm64Updates = !persistentSettings.checkSm64Updates
+            text: qsTr("Tell me when a new SM64Coin version is available") + translationManager.emptyString
+        }
+
+        MoneroComponents.CheckBox {
             id: checkForUpdatesCheckBox
             visible: false // SM64COIN
             enabled: !disableCheckUpdatesFlag
