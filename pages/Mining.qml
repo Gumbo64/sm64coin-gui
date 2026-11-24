@@ -100,6 +100,7 @@ Rectangle {
     Connections {
         target: sm64Http
         onSiteOpened: playOpened = url
+        onSiteError: lastEvent = qsTr("Local site unavailable (%1): opened the GitHub Pages site").arg(message)
     }
     property string playOpened: ""
 
@@ -181,7 +182,7 @@ Rectangle {
         MoneroComponents.LineEdit {
             Layout.fillWidth: true
             labelText: qsTr("Web miner URL") + translationManager.emptyString
-            placeholderText: qsTr("automatic: this computer's site (http://localhost:5181), else gumbo64.github.io") + translationManager.emptyString
+            placeholderText: qsTr("automatic: this computer's site (started with the wallet), else gumbo64.github.io") + translationManager.emptyString
             text: persistentSettings.sm64WebMinerUrl
             onTextChanged: persistentSettings.sm64WebMinerUrl = text
         }

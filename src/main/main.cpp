@@ -471,6 +471,16 @@ Verify update binary using 'shasum'-compatible (SHA256 algo) output signed by tw
     engine.rootContext()->setContextProperty("minerProcess", &minerProcess);
     Sm64Http sm64Http;
     engine.rootContext()->setContextProperty("sm64Http", &sm64Http);
+    // SM64COIN: the website of the release, served locally, up before any page can ask for it
+    Sm64WebServer sm64Web;
+    sm64Http.setServer(&sm64Web);
+    {
+        const QString err = sm64Web.startAll();
+        if (err.isEmpty())
+            qInfo() << "SM64Coin site:" << sm64Web.baseUrl() << "from" << sm64Web.webDir();
+        else
+            qWarning() << "SM64Coin local site unavailable:" << err;
+    }
 
     engine.addImportPath(":/fonts");
 

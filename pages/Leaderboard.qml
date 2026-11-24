@@ -64,6 +64,10 @@ Rectangle {
             cb(status, data, text);
         }
     }
+    Connections {
+        target: sm64Http
+        onSiteError: setStatus(qsTr("Local site unavailable (%1): opened the GitHub Pages site").arg(message), true)
+    }
     function setStatus(t, err) { statusText = t; statusIsError = err; }
     // The standings are on the website (it reads the same board from a node): the local site
     // first, GitHub Pages as the last resort (Sm64Http::openSite).

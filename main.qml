@@ -97,6 +97,8 @@ ApplicationWindow {
     // SM64COIN: a --rpc-bind-port in the daemon flags moves the wallet's own node
     readonly property string localDaemonAddress : "localhost:" + (/--rpc-bind-port[= ](\d+)/.exec(persistentSettings.daemonFlags || "") || [0, getDefaultDaemonRpcPort(persistentSettings.nettype)])[1]
     property string currentDaemonAddress;
+    // SM64COIN: the local site's /json_rpc follows the wallet's node
+    onCurrentDaemonAddressChanged: if (currentDaemonAddress) sm64Http.setNode(currentDaemonAddress)
     property int disconnectedEpoch: 0
     property int estimatedBlockchainSize: persistentSettings.pruneBlockchain ? 110 : 270 // GB
     property alias viewState: rootItem.state

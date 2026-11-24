@@ -8,6 +8,8 @@
 #include <QString>
 #include <QStringList>
 #include <QNetworkAccessManager>
+#include <QTcpServer>
+#include <QUrl>
 
 // Where the release bundle's files are. Nothing here is hardcoded to a machine: the launcher
 // (sm64coin) passes SM64COIN_ROM and SM64COIN_DATA_DIR to the wallet it starts; without them the
@@ -69,23 +71,63 @@ private:
     QByteArray m_buf;
 };
 
+// The website the release ships next to the wallet (web/), served by the wallet itself on
+// 127.0.0.1 so nothing else has to be started: static files (single-page app), plus the same-origin
+// endpoints the site uses: /json_rpc -> this computer's node, /leaderboard-api -> the leaderboard server.
+class Sm64WebServer : public QTcpServer
+{
+    Q_OBJECT
+public:
+    explicit Sm64WebServer(QObject *parent = nullptr);
+    ~Sm64WebServer() override;
+    // Finds the website folder, listens (port $SM64COIN_WEB_PORT or 5181, else the next free ones),
+    // starts the bundled leaderboard server if there is one. Returns an empty string on success,
+    // else why the local site is not available.
+    QString startAll();
+    QString error() const { return m_error; }
+    QString baseUrl() const { return isListening() ? QStringLiteral("http://127.0.0.1:%1").arg(serverPort()) : QString(); }
+    QString webDir() const { return m_dir; }
+    // Node the site's /json_rpc goes to ("host:port" or URL); follows the wallet's node setting.
+    void setRpc(const QString &addr);
+    static QString findWebDir();
+protected:
+    void incomingConnection(qintptr handle) override;
+private:
+    void onData(QTcpSocket *s);
+    void respond(QTcpSocket *s, int code, const QByteArray &type, const QByteArray &body, bool head = false);
+    void serve(QTcpSocket *s, const QByteArray &method, const QByteArray &target, const QByteArray &ctype, const QByteArray &body);
+    void proxy(QTcpSocket *s, const QString &base, const QString &rest, const QByteArray &ctype, const QByteArray &body, bool isPost);
+    QString m_dir, m_error;
+    QString m_rpc = QStringLiteral("http://127.0.0.1:16481");
+    QString m_leaderboard;
+    QProcess *m_lb = nullptr;
+    QNetworkAccessManager m_nam;
+};
+
 // Minimal asynchronous HTTP client (the QML network access manager is deliberately blocked).
 class Sm64Http : public QObject
 {
     Q_OBJECT
 public:
     explicit Sm64Http(QObject *parent = nullptr);
+    void setServer(Sm64WebServer *s) { m_server = s; }
+    // The wallet's current node, so the site's /json_rpc reaches the same one.
+    Q_INVOKABLE void setNode(const QString &addr) { if (m_server) m_server->setRpc(addr); }
+    Q_INVOKABLE QString localUrl() const { return m_server ? m_server->baseUrl() : QString(); }
     Q_INVOKABLE void request(int id, const QString &method, const QString &url, const QString &jsonBody);
     // Opens a page of the website (`path`, e.g. "/mine?address=..."): `custom` (a site URL from the
-    // settings) if set; else the local site (the launcher's, $SM64COIN_WEB_URL, default
-    // http://localhost:5181) when it answers, which uses this computer's node; GitHub Pages only as
-    // the last resort. Calls back siteOpened(url).
+    // settings) if set; else the local site (the wallet's own server (Sm64WebServer),
+    // which uses this computer's node) after a health check; GitHub Pages only as the last resort,
+    // with siteError(reason). Calls back siteOpened(url).
     Q_INVOKABLE void openSite(const QString &custom, const QString &path);
 signals:
     void siteOpened(const QString &url);
+    // The local site is not available (reason); the GitHub Pages site is opened instead.
+    void siteError(const QString &message);
     void finished(int id, int status, const QString &text);
 private:
     QNetworkAccessManager m_nam;
+    Sm64WebServer *m_server = nullptr;
 };
 
 #endif

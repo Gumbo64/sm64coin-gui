@@ -17,7 +17,10 @@
 #else
 #include <sys/resource.h>
 #endif
+#include <QTcpSocket>
 #include <QNetworkReply>
+#include <QPointer>
+#include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QProcessEnvironment>
 #include <QUrl>
@@ -216,6 +219,188 @@ void MinerProcess::onReadyRead()
     }
 }
 
+static QString contentType(const QString &f)
+{
+    static const QHash<QString, const char *> t = {
+        {"html", "text/html; charset=utf-8"}, {"js", "text/javascript; charset=utf-8"}, {"mjs", "text/javascript; charset=utf-8"},
+        {"css", "text/css; charset=utf-8"}, {"json", "application/json"}, {"wasm", "application/wasm"},
+        {"svg", "image/svg+xml"}, {"png", "image/png"}, {"jpg", "image/jpeg"}, {"jpeg", "image/jpeg"}, {"gif", "image/gif"},
+        {"ico", "image/x-icon"}, {"webp", "image/webp"}, {"woff", "font/woff"}, {"woff2", "font/woff2"}, {"ttf", "font/ttf"},
+        {"txt", "text/plain; charset=utf-8"}, {"map", "application/json"}, {"webmanifest", "application/manifest+json"}};
+    return QString::fromLatin1(t.value(QFileInfo(f).suffix().toLower(), "application/octet-stream"));
+}
+
+Sm64WebServer::Sm64WebServer(QObject *parent) : QTcpServer(parent) {}
+
+Sm64WebServer::~Sm64WebServer()
+{
+    if (m_lb && m_lb->state() != QProcess::NotRunning) {
+        m_lb->terminate();
+        if (!m_lb->waitForFinished(2000)) { m_lb->kill(); m_lb->waitForFinished(1000); }
+    }
+}
+
+QString Sm64WebServer::findWebDir()
+{
+    QStringList c;
+    const QString env = qEnvironmentVariable("SM64COIN_WEB_DIR");
+    if (!env.isEmpty()) c << env;
+    const QString b = sm64paths::bundleDir();
+    c << b + "/web" << QCoreApplication::applicationDirPath() + "/web"
+      << b + "/../web/dist" << b + "/../../../web/dist" << b + "/../../../../web/dist"; // a source checkout: <repo>/gui/build/bin
+    for (const QString &d : c)
+        if (QFileInfo(QDir(d).filePath("index.html")).isFile())
+            return QDir::cleanPath(QDir(d).absolutePath());
+    return QString();
+}
+
+QString Sm64WebServer::startAll()
+{
+    m_dir = findWebDir();
+    if (m_dir.isEmpty())
+        return m_error = tr("the website is missing: no web/index.html next to the wallet (%1)").arg(QDir::toNativeSeparators(sm64paths::bundleDir()));
+    bool okPort = false;
+    int port = qEnvironmentVariable("SM64COIN_WEB_PORT").toInt(&okPort);
+    if (!okPort || port <= 0 || port > 65535) port = 5181;
+    bool bound = false;
+    for (int i = 0; i <= 20 && !bound; ++i)
+        bound = listen(QHostAddress::LocalHost, quint16(port + i < 65536 ? port + i : 0));
+    if (!bound)
+        bound = listen(QHostAddress::LocalHost, 0);
+    if (!bound)
+        return m_error = tr("cannot start the local site: %1").arg(errorString());
+
+    // The leaderboard server of the bundle (the site's /leaderboard-api and the Leaderboard page):
+    // unless one already answers on its port (the sm64coin-node script's, a server's).
+    m_leaderboard = QStringLiteral("http://127.0.0.1:16490");
+    const QString lb = sm64paths::program("sm64coin-leaderboard");
+    if (!lb.isEmpty()) {
+        QTcpSocket probe;
+        probe.connectToHost(QHostAddress::LocalHost, 16490);
+        if (!probe.waitForConnected(300)) {
+            const QString dd = QDir(sm64paths::dataDir()).filePath("leaderboard");
+            QDir().mkpath(dd);
+            m_lb = new QProcess(this);
+            m_lb->setProcessChannelMode(QProcess::MergedChannels);
+            m_lb->setStandardOutputFile(QDir(sm64paths::dataDir()).filePath("leaderboard.log"), QIODevice::Append);
+            QStringList a{"--daemon", m_rpc, "--bind", "127.0.0.1:16490", "--poll-secs", "10", "--data-dir", dd, "--peer-port", "16490"};
+            for (const QString &f : {QDir(sm64paths::bundleDir()).filePath("leaderboard-peers.txt"), QDir(sm64paths::dataDir()).filePath("leaderboard-peers.txt")})
+                if (QFileInfo(f).isFile()) a << "--peers-file" << f;
+            m_lb->start(lb, a);
+        }
+    }
+    return QString();
+}
+
+void Sm64WebServer::setRpc(const QString &addr)
+{
+    QString a = addr.trimmed();
+    if (a.isEmpty()) return;
+    if (!a.contains("://")) a = "http://" + a;
+    while (a.endsWith('/')) a.chop(1);
+    m_rpc = a;
+}
+
+void Sm64WebServer::incomingConnection(qintptr handle)
+{
+    auto *s = new QTcpSocket(this);
+    if (!s->setSocketDescriptor(handle)) { delete s; return; }
+    connect(s, &QTcpSocket::readyRead, this, [this, s]() { onData(s); });
+    connect(s, &QTcpSocket::disconnected, s, &QObject::deleteLater);
+    QTimer::singleShot(150000, s, [s]() { s->abort(); }); // a stuck client never holds the socket forever
+}
+
+void Sm64WebServer::onData(QTcpSocket *s)
+{
+    // One request per connection (Connection: close). Wait for the whole header and body.
+    QByteArray buf = s->property("buf").toByteArray() + s->readAll();
+    s->setProperty("buf", buf);
+    const int he = buf.indexOf("\r\n\r\n");
+    if (he < 0) {
+        if (buf.size() > 65536) respond(s, 431, "text/plain", "headers too large");
+        return;
+    }
+    const QList<QByteArray> lines = buf.left(he).split('\n');
+    const QList<QByteArray> rl = lines.value(0).trimmed().split(' ');
+    if (rl.size() < 2) return respond(s, 400, "text/plain", "bad request");
+    qint64 len = 0;
+    QByteArray ctype;
+    for (int i = 1; i < lines.size(); ++i) {
+        const int k = lines[i].indexOf(':');
+        if (k < 0) continue;
+        const QByteArray name = lines[i].left(k).trimmed().toLower(), val = lines[i].mid(k + 1).trimmed();
+        if (name == "content-length") len = val.toLongLong();
+        else if (name == "content-type") ctype = val;
+    }
+    if (len < 0 || len > 16 * 1024 * 1024) return respond(s, 413, "text/plain", "too large");
+    if (buf.size() - (he + 4) < len) return;
+    s->disconnect(SIGNAL(readyRead()));
+    s->setProperty("buf", QVariant());
+    serve(s, rl[0].toUpper(), rl[1], ctype, buf.mid(he + 4, int(len)));
+}
+
+void Sm64WebServer::respond(QTcpSocket *s, int code, const QByteArray &type, const QByteArray &body, bool head)
+{
+    if (!s || s->state() != QAbstractSocket::ConnectedState) return;
+    static const QHash<int, const char *> txt = {{200, "OK"}, {204, "No Content"}, {400, "Bad Request"}, {404, "Not Found"}, {405, "Method Not Allowed"},
+                                                 {413, "Payload Too Large"}, {431, "Request Header Fields Too Large"}, {502, "Bad Gateway"}, {503, "Service Unavailable"}};
+    QByteArray h = "HTTP/1.1 " + QByteArray::number(code) + " " + txt.value(code, "Status") + "\r\nContent-Type: " + type
+                 + "\r\nContent-Length: " + QByteArray::number(body.size()) + "\r\nCache-Control: no-cache\r\nConnection: close\r\n\r\n";
+    s->write(h);
+    if (!head) s->write(body);
+    s->disconnectFromHost();
+}
+
+void Sm64WebServer::proxy(QTcpSocket *s, const QString &base, const QString &rest, const QByteArray &ctype, const QByteArray &body, bool isPost)
+{
+    QNetworkRequest req{QUrl(base + rest)};
+    if (!ctype.isEmpty()) req.setHeader(QNetworkRequest::ContentTypeHeader, ctype);
+    QNetworkReply *reply = isPost ? m_nam.post(req, body) : m_nam.get(req);
+    QPointer<QTcpSocket> sock(s);
+    QTimer::singleShot(120000, reply, [reply]() { reply->abort(); });
+    connect(reply, &QNetworkReply::finished, this, [this, reply, sock]() {
+        const QByteArray data = reply->readAll();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QByteArray ct = reply->header(QNetworkRequest::ContentTypeHeader).toByteArray();
+        const QString err = reply->errorString();
+        reply->deleteLater();
+        if (!sock) return;
+        if (status == 0) respond(sock, 502, "text/plain", "upstream unavailable: " + err.toUtf8());
+        else respond(sock, status, ct.isEmpty() ? QByteArray("application/json") : ct, data);
+    });
+}
+
+void Sm64WebServer::serve(QTcpSocket *s, const QByteArray &method, const QByteArray &target, const QByteArray &ctype, const QByteArray &body)
+{
+    if (method == "OPTIONS") return respond(s, 204, "text/plain", QByteArray());
+    const bool head = method == "HEAD";
+    if (method != "GET" && !head && method != "POST") return respond(s, 405, "text/plain", "method not allowed");
+    const QString url = QString::fromUtf8(QByteArray::fromPercentEncoding(target));
+    const int q = target.indexOf('?');
+    const QString path = QString::fromUtf8(QByteArray::fromPercentEncoding(q < 0 ? target : target.left(q)));
+    const QString query = q < 0 ? QString() : QString::fromUtf8(target.mid(q));
+    Q_UNUSED(url);
+    if (path == "/json_rpc")
+        return proxy(s, m_rpc, "/json_rpc", ctype, body, method == "POST");
+    if (path.startsWith("/leaderboard-api")) {
+        QString rest = path.mid(16);
+        return proxy(s, m_leaderboard, (rest.isEmpty() ? QString("/") : rest) + query, ctype, body, method == "POST");
+    }
+    // Static files of the site; never outside its folder.
+    const QStringList parts = path.split('/', QString::SkipEmptyParts);
+    for (const QString &p : parts)
+        if (p == ".." || p.contains(':') || p.contains('\\')) return respond(s, 400, "text/plain", "bad path");
+    QString rel = parts.join('/');
+    QFileInfo fi(QDir(m_dir).filePath(rel.isEmpty() ? "index.html" : rel));
+    if (fi.isDir()) fi.setFile(QDir(fi.absoluteFilePath()).filePath("index.html"));
+    // Single-page app: unknown paths without an extension are routes of the site.
+    if (!fi.isFile() && QFileInfo(rel).suffix().isEmpty()) fi.setFile(QDir(m_dir).filePath("index.html"));
+    QFile f(fi.absoluteFilePath());
+    if (!fi.isFile() || !fi.absoluteFilePath().startsWith(m_dir) || !f.open(QIODevice::ReadOnly))
+        return respond(s, 404, "text/plain", "not found", head);
+    respond(s, 200, contentType(fi.fileName()).toLatin1(), f.readAll(), head);
+}
+
 Sm64Http::Sm64Http(QObject *parent) : QObject(parent) {}
 
 void Sm64Http::openSite(const QString &custom, const QString &path)
@@ -223,18 +408,24 @@ void Sm64Http::openSite(const QString &custom, const QString &path)
     static const QString pages = QStringLiteral("https://gumbo64.github.io/sm64coin");
     auto base = [](QString u) { u = u.trimmed(); while (u.endsWith('/')) u.chop(1); if (u.endsWith("/mine")) u.chop(5); return u; };
     auto open = [this](const QString &u) { QDesktopServices::openUrl(QUrl(u)); emit siteOpened(u); };
-    // Old defaults (before 0.2.2) count as "automatic".
+    // Old defaults (before 0.2.2, and the launcher's port) count as "automatic".
     const QString c = base(custom);
-    if (!c.isEmpty() && c != pages && c != QLatin1String("http://localhost:5181"))
+    if (!c.isEmpty() && c != pages && c != QLatin1String("http://localhost:5181") && c != QLatin1String("http://127.0.0.1:5181"))
         return open(c + path);
-    QString local = base(qEnvironmentVariable("SM64COIN_WEB_URL"));
-    if (local.isEmpty())
-        local = QStringLiteral("http://localhost:5181");
+    const QString local = m_server ? m_server->baseUrl() : QString();
+    if (local.isEmpty()) {
+        emit siteError(m_server && !m_server->error().isEmpty() ? m_server->error() : tr("the local site is not running"));
+        return open(pages + path);
+    }
+    // Health check at the moment of use: the site's index.html must come back.
     QNetworkReply *reply = m_nam.get(QNetworkRequest(QUrl(local + "/")));
     QTimer::singleShot(2500, reply, [reply]() { reply->abort(); });
-    connect(reply, &QNetworkReply::finished, this, [reply, local, path, open]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, local, path, open]() {
         const bool up = reply->error() == QNetworkReply::NoError && reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200;
+        const QString why = reply->errorString();
         reply->deleteLater();
+        if (!up)
+            emit siteError(tr("the local site on %1 does not answer (%2)").arg(local, why));
         open((up ? local : pages) + path);
     });
 }
