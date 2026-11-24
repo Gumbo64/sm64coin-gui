@@ -60,6 +60,19 @@ QT_QPA_PLATFORM=offscreen build/bin/monero-wallet-gui --log-level 2 --daemon-add
   (`sm64paths` in `sm64helpers.cpp`): the bundle's `sm64coin-automine`, the ROM from `$SM64COIN_ROM` (the launcher sets it and
   `$SM64COIN_DATA_DIR`) or next to the bundle / in `~/.sm64coin`, SHA-1 checked; saves in `<data dir>/mined`, campaign scratch
   `<data dir>/miner` (the launcher's `--mine` uses the same).
+- First run = local node: desktop `useRemoteNode` already defaults to false and the wizard's mode selection shows only
+  Advanced mode (the simple modes need remote/bootstrap nodes); users who chose a remote node keep it. `main.qml` sets an empty
+  `blockchainDataDir` to `<data dir>/node` (`~/.sm64coin/node`) at startup, the wizard's "Reset" returns to it, and the wizard no
+  longer turns pruning on: SM64Coin blocks are small and every node replays all of them, so pruning saves nothing and a full node
+  serves the whole history to new peers.
+- Missing ROM: `startDaemon` (main.qml) calls `askForRom` when `findRom()` finds nothing: a dialog explains what is needed (US ROM,
+  .z64, SHA-1, not included), a file picker follows, `MinerProcess.installRom(path)` checks size and SHA-1 and copies the file to
+  `<data dir>/baserom.us.z64` (wrong file: error dialog, then asks again), then the node starts. Skipped if the daemon flags carry `--sm64-rom`.
+- Node start failures: the daemon is no longer started with `--detach`; it is a child of the wallet (stopped on wallet exit as
+  before), so `DaemonManager::onDaemonFinished` sees an early exit and shows the exit code, a hint for port in use / ROM / locked
+  database, and the last lines the node printed. `--rpc-bind-port` in the daemon flags is honoured by the wallet (its own
+  node address) and by the status/exit commands sent to the node.
+- Mining page uses the wallet's daemon address (`currentDaemonAddress`, the local node 127.0.0.1:16481 by default).
 - Local node: `DaemonManager` runs the bundle's `sm64coind` (macOS: next to the .app) with `--sm64-rom` from the same search.
 - New `pages/Leaderboard.qml` (Advanced > Leaderboard): lists `GET <url>/leaderboard`, Join/Leave POST address + secret
   view key to /register, /unregister. HTTP goes through `Sm64Http` (QML's own network access is blocked by the fork).

@@ -94,7 +94,8 @@ ApplicationWindow {
     property bool androidCloseTapped: false;
     property int userLastActive;  // epoch
     // Default daemon addresses
-    readonly property string localDaemonAddress : "localhost:" + getDefaultDaemonRpcPort(persistentSettings.nettype)
+    // SM64COIN: a --rpc-bind-port in the daemon flags moves the wallet's own node
+    readonly property string localDaemonAddress : "localhost:" + (/--rpc-bind-port[= ](\d+)/.exec(persistentSettings.daemonFlags || "") || [0, getDefaultDaemonRpcPort(persistentSettings.nettype)])[1]
     property string currentDaemonAddress;
     property int disconnectedEpoch: 0
     property int estimatedBlockchainSize: persistentSettings.pruneBlockchain ? 110 : 270 // GB
@@ -783,7 +784,49 @@ ApplicationWindow {
             currentWallet.refreshHeightAsync();
     }
 
+    // SM64COIN: the node replays every block it verifies, so it needs the US ROM; ask for it when
+    // none is found (bundle folder, ~/.sm64coin, $SM64COIN_ROM, cwd), install it, then start the node.
     function startDaemon(flags){
+        if (flags.indexOf("--sm64-rom") < 0 && minerProcess.defaultRomPath() === "") {
+            askForRom(function() { startDaemon(flags); });
+            return;
+        }
+        startDaemonNow(flags);
+    }
+
+    property var romAskedCallback: null
+    function askForRom(onInstalled) {
+        romAskedCallback = onInstalled;
+        confirmationDialog.title = qsTr("Super Mario 64 ROM needed") + translationManager.emptyString;
+        confirmationDialog.text = qsTr("The SM64Coin node checks every block by replaying it in the game, so it needs your own copy of the US version of Super Mario 64 (.z64, SHA-1 9bef1128717f958171a4afac3ed78ee2bb4e86ce). The ROM is not included with SM64Coin.\n\nThe file is copied to %1.\n\nChoose the ROM file now?").arg(minerProcess.defaultNodeDir().replace(/[\\/]node$/, "") + "/baserom.us.z64") + translationManager.emptyString;
+        confirmationDialog.icon = StandardIcon.Question;
+        confirmationDialog.onAcceptedCallback = function() { romFileDialog.open(); };
+        confirmationDialog.onRejectedCallback = function() { romAskedCallback = null; };
+        confirmationDialog.open();
+    }
+
+    FileDialog {
+        id: romFileDialog
+        title: qsTr("Choose your US Super Mario 64 ROM (.z64)") + translationManager.emptyString
+        nameFilters: [ "N64 ROM (*.z64)", "All files (*)" ]
+        onAccepted: {
+            const err = minerProcess.installRom(walletManager.urlToLocalPath(romFileDialog.fileUrl));
+            if (err !== "") {
+                informationPopup.title = qsTr("Wrong ROM file") + translationManager.emptyString;
+                informationPopup.text = err;
+                informationPopup.icon = StandardIcon.Critical;
+                informationPopup.onCloseCallback = function() { askForRom(appWindow.romAskedCallback); };
+                informationPopup.open();
+                return;
+            }
+            const cb = romAskedCallback;
+            romAskedCallback = null;
+            if (cb) cb();
+        }
+        onRejected: romAskedCallback = null
+    }
+
+    function startDaemonNow(flags){
         daemonStartStopInProgress = 1;
 
         // Pause refresh while starting daemon
@@ -1434,6 +1477,10 @@ ApplicationWindow {
         translationManager.setLanguage(persistentSettings.locale.split("_")[0]);
 
         applyWalletMode(persistentSettings.walletMode);
+
+        // SM64COIN: the wallet's own node keeps its data in <data dir>/node unless the user chose a folder
+        if (persistentSettings.blockchainDataDir === "")
+            persistentSettings.blockchainDataDir = minerProcess.defaultNodeDir();
 
         //
         walletManager.walletOpened.connect(onWalletOpened);

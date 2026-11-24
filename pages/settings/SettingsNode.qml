@@ -304,7 +304,7 @@ Rectangle{
                         blockchainFileDialog.open();
                         blockchainFolder.focus = true;
                     }
-                    onLabelButtonClicked: persistentSettings.blockchainDataDir = ""
+                    onLabelButtonClicked: persistentSettings.blockchainDataDir = minerProcess.defaultNodeDir() // SM64COIN
                 }
             }
 

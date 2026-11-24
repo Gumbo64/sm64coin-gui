@@ -31,6 +31,7 @@
 
 #include <memory>
 
+#include <atomic> // SM64COIN
 #include <QMutex>
 #include <QObject>
 #include <QUrl>
@@ -76,6 +77,7 @@ public slots:
     void printOutput();
     void printError();
     void stateChanged(QProcess::ProcessState state);
+    void onDaemonFinished(int exitCode, QProcess::ExitStatus status); // SM64COIN
 
 private:
     std::unique_ptr<QProcess> m_daemon;
@@ -84,6 +86,12 @@ private:
     bool m_app_exit = false;
     bool m_noSync = false;
     QString args = "";
+    // SM64COIN: the daemon runs as a child (not --detach) so that a failed start can be reported.
+    std::atomic<bool> m_exitedEarly{false};
+    bool m_startConfirmed = false;
+    QStringList m_tail;      // the daemon's last output lines
+    QStringList m_rpcArgs;   // --rpc-bind-port from the custom flags, for the commands sent to it
+    void rememberOutput(const QString &line);
 
     mutable FutureScheduler m_scheduler;
 };

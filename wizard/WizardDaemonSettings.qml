@@ -88,7 +88,7 @@ ColumnLayout {
             placeholderText: qsTr("Default") + translationManager.emptyString
             placeholderFontSize: 15
             text: persistentSettings.blockchainDataDir
-            onLabelLinkActivated: persistentSettings.blockchainDataDir = ""
+            onLabelLinkActivated: persistentSettings.blockchainDataDir = minerProcess.defaultNodeDir() // SM64COIN: reset = the default node folder
 
             MoneroComponents.InlineButton {
                 small: true

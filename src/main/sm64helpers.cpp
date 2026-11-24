@@ -122,6 +122,27 @@ QString findRom()
             return QDir::toNativeSeparators(QFileInfo(f).absoluteFilePath());
     return QString();
 }
+
+QString nodeDir() { return QDir(dataDir()).filePath("node"); }
+
+QString installRom(const QString &path)
+{
+    const QFileInfo fi(path);
+    if (path.isEmpty() || !fi.isFile())
+        return QCoreApplication::translate("sm64", "The file does not exist.");
+    if (fi.size() != 8 * 1024 * 1024)
+        return QCoreApplication::translate("sm64", "This is not the right file: a US Super Mario 64 ROM in .z64 format is exactly 8 MiB (this file is %1 bytes). Byte-swapped dumps (.v64, .n64) do not work, convert them to .z64 first.").arg(fi.size());
+    if (!isUsRom(path))
+        return QCoreApplication::translate("sm64", "This is not the right file: its SHA-1 is not %1 (the US version of Super Mario 64, .z64). Other regions and modified ROMs do not work.").arg(ROM_SHA1);
+    QDir().mkpath(dataDir());
+    const QString dest = QDir(dataDir()).filePath(ROM_NAME);
+    if (QFileInfo(dest).absoluteFilePath() == fi.absoluteFilePath())
+        return QString();
+    QFile::remove(dest);
+    if (!QFile::copy(path, dest))
+        return QCoreApplication::translate("sm64", "Could not copy the ROM to %1.").arg(QDir::toNativeSeparators(dest));
+    return QString();
+}
 }
 
 QString MinerProcess::defaultSaveDir() const { return QDir::toNativeSeparators(QDir(sm64paths::dataDir()).filePath("mined")); }

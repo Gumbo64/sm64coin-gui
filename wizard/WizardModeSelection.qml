@@ -77,6 +77,7 @@ Rectangle {
             }
 
             WizardMenuItem {
+                visible: false // SM64COIN: simple modes use remote/bootstrap nodes SM64Coin does not have
                 opacity: simpleModeAvailable ? 1.0 : 0.5
                 Layout.topMargin: 20
                 headerText: qsTr("Simple mode") + translationManager.emptyString
@@ -102,6 +103,7 @@ Rectangle {
             }
 
             Rectangle {
+                visible: false // SM64COIN
                 Layout.preferredHeight: 1
                 Layout.topMargin: 5
                 Layout.bottomMargin: 10
@@ -111,6 +113,7 @@ Rectangle {
             }
 
             WizardMenuItem {
+                visible: false // SM64COIN: simple modes use remote/bootstrap nodes SM64Coin does not have
                 opacity: simpleModeAvailable ? 1.0 : 0.5
                 headerText: qsTr("Simple mode") + " (bootstrap)" + translationManager.emptyString
                 bodyText: {
@@ -128,13 +131,14 @@ Rectangle {
 
                 onMenuClicked: {
                     if (simpleModeAvailable) {
-                        appWindow.persistentSettings.pruneBlockchain = true;
+                        appWindow.persistentSettings.pruneBlockchain = false; // SM64COIN: the chain is small, full nodes help the network
                         applyWalletMode(1, 'wizardModeBootstrap');
                     }
                 }
             }
 
             Rectangle {
+                visible: false // SM64COIN
                 Layout.preferredHeight: 1
                 Layout.topMargin: 5
                 Layout.bottomMargin: 10
@@ -149,7 +153,7 @@ Rectangle {
                 imageIcon: "qrc:///images/local-node-full.png"
 
                 onMenuClicked: {
-                    appWindow.persistentSettings.pruneBlockchain = true;
+                    appWindow.persistentSettings.pruneBlockchain = false; // SM64COIN: the chain is small, full nodes help the network
                     applyWalletMode(2, 'wizardHome');
                 }
             }

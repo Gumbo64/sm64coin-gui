@@ -60,15 +60,25 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     // prepare command line arguments and pass to monerod
     QStringList arguments;
 
-    // Start daemon with --detach flag on non-windows platforms
-#ifndef Q_OS_WIN
-    arguments << "--detach";
-#endif
+    // SM64COIN: no --detach: the node is a child of the wallet, so an early exit (missing ROM,
+    // port in use, ...) is seen and its output shown. The wallet stops it on exit.
 
     if (nettype == NetworkType::TESTNET)
         arguments << "--testnet";
     else if (nettype == NetworkType::STAGENET)
         arguments << "--stagenet";
+
+    // SM64COIN: the commands sent to this node (sync_info, exit) must use its RPC port.
+    m_rpcArgs.clear();
+    {
+        const QStringList f = flags.split(" ", Qt::SkipEmptyParts);
+        for (int i = 0; i < f.size(); ++i) {
+            if (f[i] == "--rpc-bind-port" && i + 1 < f.size())
+                m_rpcArgs << "--rpc-bind-port" << f[i + 1];
+            else if (f[i].startsWith("--rpc-bind-port="))
+                m_rpcArgs << "--rpc-bind-port" << f[i].mid(16);
+        }
+    }
 
     // Custom startup flags for daemon
     foreach (const QString &str, flags.split(" ")) {
@@ -132,16 +142,20 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     QMutexLocker locker(&m_daemonMutex);
 
     m_daemon.reset(new QProcess());
+    m_exitedEarly = false;
+    m_startConfirmed = false;
+    m_tail.clear();
 
     // Connect output slots
     connect(m_daemon.get(), SIGNAL(readyReadStandardOutput()), this, SLOT(printOutput()));
     connect(m_daemon.get(), SIGNAL(readyReadStandardError()), this, SLOT(printError()));
-
-    // Start monerod
-    bool started = m_daemon->startDetached(m_monerod, arguments);
-
-    // add state changed listener
     connect(m_daemon.get(), SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(stateChanged(QProcess::ProcessState)));
+    connect(m_daemon.get(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onDaemonFinished(int, QProcess::ExitStatus)));
+
+    // Start monerod (SM64COIN: as a child process)
+    locker.unlock(); // its output slots take the mutex
+    m_daemon->start(m_monerod, arguments);
+    const bool started = m_daemon->waitForStarted(10000);
 
     if (!started) {
         qDebug() << "Daemon start error: " + m_daemon->errorString();
@@ -152,8 +166,11 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     // Start start watcher
     m_scheduler.run([this, nettype, dataDir, noSync] {
         if (startWatcher(nettype, dataDir)) {
+            m_startConfirmed = true;
             emit daemonStarted();
             m_noSync = noSync;
+        } else if (m_exitedEarly) {
+            // SM64COIN: onDaemonFinished already reported why
         } else {
             emit daemonStartFailure(tr("Timed out, local node is not responding after %1 seconds").arg(DAEMON_START_TIMEOUT_SECONDS));
         }
@@ -182,8 +199,9 @@ bool DaemonManager::startWatcher(NetworkType::Type nettype, const QString &dataD
     // Check if daemon is started every 2 seconds
     QElapsedTimer timer;
     timer.start();
-    while(true && !m_app_exit && timer.elapsed() / 1000 < DAEMON_START_TIMEOUT_SECONDS  ) {
+    while(true && !m_app_exit && !m_exitedEarly && timer.elapsed() / 1000 < DAEMON_START_TIMEOUT_SECONDS  ) {
         QThread::sleep(2);
+        if (m_exitedEarly) return false; // SM64COIN
         if(!running(nettype, dataDir)) {
             qDebug() << "daemon not running. checking again in 2 seconds.";
         } else {
@@ -228,6 +246,38 @@ void DaemonManager::stateChanged(QProcess::ProcessState state)
     }
 }
 
+// SM64COIN
+void DaemonManager::rememberOutput(const QString &line)
+{
+    const QString t = line.trimmed();
+    if (t.isEmpty()) return;
+    m_tail << t;
+    while (m_tail.size() > 40) m_tail.removeFirst();
+}
+
+// SM64COIN: the node exited. Before it answered: tell the user why.
+void DaemonManager::onDaemonFinished(int exitCode, QProcess::ExitStatus status)
+{
+    if (m_startConfirmed || m_app_exit) return;
+    m_exitedEarly = true;
+    // flush what is left of its output
+    printOutput();
+    printError();
+    QString msg = status == QProcess::CrashExit ? tr("The node crashed right after starting.")
+                                                 : tr("The node exited right after starting (exit code %1).").arg(exitCode);
+    const QString all = m_tail.join("\n");
+    if (all.contains("Address already in use") || all.contains("Failed to bind") || all.contains("bind: "))
+        msg += "\n\n" + tr("A network port it needs is already in use, probably by another SM64Coin node that is already running. Close it (or use other ports in the daemon flags) and try again.");
+    else if (all.contains("ROM", Qt::CaseInsensitive))
+        msg += "\n\n" + tr("The node needs the US Super Mario 64 ROM (baserom.us.z64).");
+    else if (all.contains("lock", Qt::CaseInsensitive) && all.contains("lmdb", Qt::CaseInsensitive))
+        msg += "\n\n" + tr("The node's database is in use by another node.");
+    QStringList last = m_tail.mid(qMax(0, m_tail.size() - 6));
+    if (!last.isEmpty())
+        msg += "\n\n" + tr("The node said:") + "\n" + last.join("\n");
+    emit daemonStartFailure(msg);
+}
+
 void DaemonManager::printOutput()
 {
     QByteArray byteArray = [this]() {
@@ -238,6 +288,7 @@ void DaemonManager::printOutput()
 
     foreach (QString line, strLines) {
         emit daemonConsoleUpdated(line);
+        rememberOutput(line); // SM64COIN
         qDebug() << "Daemon: " + line;
     }
 }
@@ -252,6 +303,7 @@ void DaemonManager::printError()
 
     foreach (QString line, strLines) {
         emit daemonConsoleUpdated(line);
+        rememberOutput(line); // SM64COIN
         qDebug() << "Daemon ERROR: " + line;
     }
 }
@@ -291,6 +343,8 @@ bool DaemonManager::sendCommand(const QStringList &cmd, NetworkType::Type nettyp
     if (!dataDir.isEmpty()) {
         external_cmd << "--data-dir" << dataDir;
     }
+
+    external_cmd << m_rpcArgs; // SM64COIN
 
     qDebug() << "sending external cmd: " << external_cmd;
 
