@@ -52,6 +52,9 @@ Rectangle {
             case Wallet.ConnectionStatus_Connected:
                 if (!appWindow.daemonSynced)
                     return qsTr("Synchronizing");
+                // SM64COIN: the automated miner's speed (frames/s) where Monero shows "Mining"
+                if (minerProcess.running)
+                    return qsTr("Mining") + (minerProcess.speedText ? " " + minerProcess.speedText.replace("frames/s", "fr/s") : "");
                 if (persistentSettings.useRemoteNode && persistentSettings.allowRemoteNodeMining && appWindow.isMining)
                     return qsTr("Remote node") + " + " + qsTr("Mining");
                 if (persistentSettings.useRemoteNode)

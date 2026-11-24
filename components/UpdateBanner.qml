@@ -31,7 +31,7 @@ Rectangle {
         linkColor: release && release.required ? "white" : MoneroComponents.Style.orange
         text: release ? ("<style>a { color: " + (release.required ? "white" : MoneroComponents.Style.orange) + "; }</style>" + (release.required ? "<b>" + qsTr("Update required:") + "</b> " : "")
                          + qsTr("SM64Coin %1 is available").arg(release.version)
-                         + " — <a href=\"" + release.url + "\">" + qsTr("release notes") + "</a>")) : ""
+                         + " — <a href=\"" + release.url + "\">" + qsTr("release notes") + "</a>") : ""
         onLinkActivated: Qt.openUrlExternally(link)
     }
     Text {

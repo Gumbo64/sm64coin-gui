@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QTimer>
+#include <QRegularExpression>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -181,7 +182,10 @@ MinerProcess::MinerProcess(QObject *parent) : QObject(parent)
 {
     m_proc.setProcessChannelMode(QProcess::MergedChannels);
     connect(&m_proc, &QProcess::readyRead, this, &MinerProcess::onReadyRead);
-    connect(&m_proc, &QProcess::stateChanged, this, [this]() { emit runningChanged(); });
+    connect(&m_proc, &QProcess::stateChanged, this, [this]() {
+        if (!running() && (m_fps != 0 || !m_samples.isEmpty())) { m_fps = 0; m_samples.clear(); emit speedChanged(); }
+        emit runningChanged();
+    });
     connect(&m_proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
             [this](int code, QProcess::ExitStatus) { onReadyRead(); emit finished(code); });
 }
@@ -202,6 +206,7 @@ QString MinerProcess::start(const QString &program, const QStringList &args, int
     env.insert("RAYON_NUM_THREADS", QString::number(threads > 0 ? threads : 4));
     m_proc.setProcessEnvironment(env);
     m_buf.clear();
+    m_samples.clear();
     // Low CPU priority: the miner uses every core but one, and at normal priority it starved the
     // node and the website (pages took long to load while mining). Its search children inherit it.
 #ifdef Q_OS_WIN
@@ -214,6 +219,30 @@ QString MinerProcess::start(const QString &program, const QStringList &args, int
     setpriority(PRIO_PROCESS, static_cast<id_t>(m_proc.processId()), 10);
 #endif
     return QString();
+}
+
+QString MinerProcess::formatRate(double x)
+{
+    if (x >= 1e6) return QString::number(x / 1e6, 'f', x >= 1e7 ? 1 : 2) + QStringLiteral(" M");
+    if (x >= 1e3) return QString::number(x / 1e3, 'f', x >= 1e5 ? 0 : 1) + QStringLiteral(" k");
+    return QString::number(qRound(x));
+}
+
+QString MinerProcess::speedText() const
+{
+    return m_fps > 0 ? formatRate(m_fps) + QStringLiteral(" frames/s") : QString();
+}
+
+// A `progress frames=<total> fps=<x>` line: the speed is the frames gained over the last 8 s (a moving average).
+void MinerProcess::onProgress(double frames)
+{
+    if (!m_clock.isValid()) m_clock.start();
+    const qint64 t = m_clock.elapsed();
+    m_samples.append({t, frames});
+    while (m_samples.size() > 2 && m_samples[1].first < t - 8000) m_samples.removeFirst();
+    const double dt = (m_samples.last().first - m_samples.first().first) / 1000.0;
+    const double fps = dt > 0.5 ? (m_samples.last().second - m_samples.first().second) / dt : 0;
+    if (fps != m_fps) { m_fps = fps; emit speedChanged(); }
 }
 
 void MinerProcess::stop()
@@ -234,7 +263,11 @@ void MinerProcess::onReadyRead()
     while ((i = m_buf.indexOf('\n')) >= 0) {
         const QString line = QString::fromUtf8(m_buf.left(i)).trimmed();
         m_buf.remove(0, i + 1);
-        if (!line.isEmpty())
+        static const QRegularExpression progress(QStringLiteral("^progress frames=(\\d+)"));
+        const QRegularExpressionMatch pm = progress.match(line);
+        if (pm.hasMatch())
+            onProgress(pm.captured(1).toDouble());
+        else if (!line.isEmpty())
             emit output(line);
     }
 }

@@ -3,6 +3,9 @@
 #define SM64HELPERS_H
 
 #include <QDir>
+#include <QElapsedTimer>
+#include <QList>
+#include <QPair>
 #include <QObject>
 #include <QProcess>
 #include <QString>
@@ -42,11 +45,18 @@ class MinerProcess : public QObject
     Q_OBJECT
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
     Q_PROPERTY(qint64 pid READ pid NOTIFY runningChanged)
+    // The miner's speed (its "hashrate"): simulated game frames per second, smoothed over ~8 s, from the
+    // `progress frames=<n> fps=<x>` lines the automine prints every ~2 s. speedText: "1.37 M frames/s", empty while unknown.
+    Q_PROPERTY(double framesPerSecond READ framesPerSecond NOTIFY speedChanged)
+    Q_PROPERTY(QString speedText READ speedText NOTIFY speedChanged)
 public:
     explicit MinerProcess(QObject *parent = nullptr);
     ~MinerProcess() override;
     bool running() const;
     qint64 pid() const;
+    double framesPerSecond() const { return m_fps; }
+    QString speedText() const;
+    static QString formatRate(double perSecond);  // "1.37 M", "412 k", "950"
     Q_INVOKABLE bool fileExists(const QString &path) const;
     // Defaults of the Mining page (used when its fields are left empty).
     Q_INVOKABLE QString defaultMinerPath() const { return sm64paths::program("sm64coin-automine"); }
@@ -62,13 +72,18 @@ public:
     Q_INVOKABLE void stop();
 signals:
     void runningChanged();
+    void speedChanged();
     void output(const QString &line);
     void finished(int exitCode);
 private slots:
     void onReadyRead();
 private:
+    void onProgress(double frames);
     QProcess m_proc;
     QByteArray m_buf;
+    QList<QPair<qint64, double>> m_samples;  // (ms, frames so far) within the smoothing window
+    QElapsedTimer m_clock;
+    double m_fps = 0;
 };
 
 // The website the release ships next to the wallet (web/), served by the wallet itself on

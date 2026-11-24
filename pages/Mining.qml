@@ -216,10 +216,19 @@ Rectangle {
                 onClicked: stopMiner()
             }
             MoneroComponents.TextPlain {
-                text: (minerProcess.running ? qsTr("Status: running (pid %1)").arg(minerProcess.pid) : qsTr("Status: stopped")) + translationManager.emptyString
+                text: (minerProcess.running ? qsTr("Status: running (pid %1)").arg(minerProcess.pid.toFixed(0)) : qsTr("Status: stopped")) + translationManager.emptyString
                 color: minerProcess.running ? MoneroComponents.Style.green : MoneroComponents.Style.dimmedFontColor
                 font.family: MoneroComponents.Style.fontRegular.name
                 font.pixelSize: 14
+            }
+            // The miner's speed where Monero shows the hashrate: simulated game frames per second.
+            MoneroComponents.TextPlain {
+                objectName: "speedText"
+                visible: minerProcess.running
+                text: qsTr("Speed: %1").arg(minerProcess.speedText || "...") + translationManager.emptyString
+                color: MoneroComponents.Style.defaultFontColor
+                font.family: MoneroComponents.Style.fontBold.name
+                font.pixelSize: 16
             }
         }
         MoneroComponents.TextPlain {
