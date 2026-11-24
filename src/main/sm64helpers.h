@@ -100,7 +100,7 @@ public:
     // else why the local site is not available.
     QString startAll();
     QString error() const { return m_error; }
-    QString baseUrl() const { return isListening() ? QStringLiteral("http://127.0.0.1:%1").arg(serverPort()) : QString(); }
+    QString baseUrl() const { return isListening() ? QStringLiteral("http://localhost:%1").arg(serverPort()) : QString(); }
     QString webDir() const { return m_dir; }
     // Node the site's /json_rpc goes to ("host:port" or URL); follows the wallet's node setting.
     void setRpc(const QString &addr);
