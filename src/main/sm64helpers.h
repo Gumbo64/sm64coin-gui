@@ -22,6 +22,10 @@ namespace sm64paths
     // The US ROM (SHA-1 checked): $SM64COIN_ROM, then baserom.us.z64 / any .z64 in the bundle
     // folder, the data dir and the current folder. Empty if none.
     QString findRom();
+    // The network's seed nodes as "ip:port" (hostnames resolved, unresolvable ones skipped):
+    // seeds.txt next to the bundle and in the data dir, as the launcher reads them; if there is
+    // none, the seeds the release ships with. For nodes the wallet starts itself.
+    QStringList seedPeers();
 }
 
 // Runs the automated miner (sm64coin-automine) as a child process.

@@ -9,6 +9,9 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QThread>
+#include <QHostInfo>
+#include <QHostAddress>
+#include <QTextStream>
 #ifdef Q_OS_WIN
 #include <windows.h>
 #else
@@ -64,6 +67,42 @@ static bool isUsRom(const QString &path)
     QCryptographicHash h(QCryptographicHash::Sha1);
     h.addData(&f);
     return h.result().toHex() == ROM_SHA1;
+}
+
+QStringList seedPeers()
+{
+    QStringList entries;
+    bool found = false;
+    for (const QString &dir : {bundleDir(), dataDir()}) {
+        QFile f(QDir(dir).filePath("seeds.txt"));
+        if (!f.open(QIODevice::ReadOnly | QIODevice::Text))
+            continue;
+        found = true;
+        QTextStream in(&f);
+        while (!in.atEnd()) {
+            const QString line = in.readLine().section('#', 0, 0).simplified().remove(' ');
+            if (!line.isEmpty())
+                entries << line;
+        }
+    }
+    if (!found)
+        entries << "p2p.eboy.au:16480"; // as seeds.txt in the release
+    QStringList out;
+    for (const QString &e : entries) {
+        const int colon = e.lastIndexOf(':');
+        const QString host = colon > 0 ? e.left(colon) : e;
+        const QString port = colon > 0 ? e.mid(colon + 1) : QStringLiteral("16480");
+        QHostAddress ip(host);
+        if (ip.isNull()) {
+            // The daemon refuses to start on a peer it can't resolve: resolve here, skip failures.
+            const QHostInfo info = QHostInfo::fromName(host);
+            for (const QHostAddress &a : info.addresses())
+                if (a.protocol() == QAbstractSocket::IPv4Protocol) { ip = a; break; }
+        }
+        if (!ip.isNull() && !out.contains(ip.toString() + ":" + port))
+            out << ip.toString() + ":" + port;
+    }
+    return out;
 }
 
 QString findRom()

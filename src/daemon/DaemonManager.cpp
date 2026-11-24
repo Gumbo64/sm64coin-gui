@@ -111,6 +111,13 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     if (!sm64Rom.isEmpty()) {
         arguments << "--sm64-rom" << sm64Rom;
     }
+    // SM64Coin: the daemon knows no seed nodes (Monero's are removed); like the launcher, give it
+    // seeds.txt's as priority peers, unless the user's flags choose the peers.
+    if (!flags.contains("--add-exclusive-node") && !flags.contains("--add-priority-node")) {
+        for (const QString &peer : sm64paths::seedPeers()) {
+            arguments << "--add-peer" << peer << "--add-priority-node" << peer;
+        }
+    }
 
     // --max-concurrency based on threads available.
     int32_t concurrency = qMax(1, QThread::idealThreadCount() / 2);
