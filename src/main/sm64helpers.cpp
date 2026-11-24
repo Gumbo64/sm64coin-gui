@@ -25,6 +25,26 @@
 #include <QProcessEnvironment>
 #include <QUrl>
 
+#if defined(Q_OS_LINUX)
+#include <signal.h>
+#include <sys/prctl.h>
+#endif
+
+namespace {
+// A process the GUI starts (the leaderboard server): on Linux the kernel stops it when the GUI
+// dies, even if the GUI is killed or crashes (then the destructor that terminates it never runs).
+class GuiChildProcess : public QProcess
+{
+public:
+    using QProcess::QProcess;
+
+protected:
+#if defined(Q_OS_LINUX) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    void setupChildProcess() override { ::prctl(PR_SET_PDEATHSIG, SIGTERM); }
+#endif
+};
+}
+
 namespace sm64paths
 {
 static const char *ROM_SHA1 = "9bef1128717f958171a4afac3ed78ee2bb4e86ce";
@@ -280,7 +300,7 @@ QString Sm64WebServer::startAll()
         if (!probe.waitForConnected(300)) {
             const QString dd = QDir(sm64paths::dataDir()).filePath("leaderboard");
             QDir().mkpath(dd);
-            m_lb = new QProcess(this);
+            m_lb = new GuiChildProcess(this);
             m_lb->setProcessChannelMode(QProcess::MergedChannels);
             m_lb->setStandardOutputFile(QDir(sm64paths::dataDir()).filePath("leaderboard.log"), QIODevice::Append);
             QStringList a{"--daemon", m_rpc, "--bind", "127.0.0.1:16490", "--poll-secs", "10", "--data-dir", dd, "--peer-port", "16490"};
