@@ -79,10 +79,16 @@ Rectangle {
         // A later timestamp renames it.
         var ts = Math.floor(Date.now() / 1000);
         var sig = currentWallet.signMessage("sm64coin-board:" + ts + ":" + name, false);
-        rpc("sm64_board_join", { name: name, address: walletAddress, view_key: currentWallet.secretViewKey, timestamp: ts, signature: sig },
+        // The evidence: the heights of the blocks this wallet mined; the node verifies each, it never scans the chain.
+        currentWallet.history.refresh(currentWallet.currentSubaddressAccount);
+        var heights = currentWallet.history.minedHeights();
+        if (heights.length === 0) { setStatus(qsTr("This wallet has not mined a block yet (or is still syncing)."), true); return; }
+        rpc("sm64_board_join", { name: name, address: walletAddress, view_key: currentWallet.secretViewKey, timestamp: ts, signature: sig, heights: heights },
             function(status, data, text) {
                 if (status === 200 && data && data.result) {
-                    if (data.result.joined) setStatus(qsTr("On the board as \"%1\". Your node shares it with its peers.").arg(name), false);
+                    if (data.result.disabled) setStatus(qsTr("The leaderboard is turned off on this node."), true);
+                    else if (data.result.queued) setStatus(qsTr("Submitted: the node is verifying your blocks, you join within a minute."), false);
+                    else if (data.result.joined) setStatus(qsTr("On the board as \"%1\". Your node shares it with its peers.").arg(name), false);
                     else setStatus(qsTr("Not on the board: ") + data.result.reason, true);
                 } else setStatus((data && data.error) ? data.error.message : (text || "HTTP " + status), true);
             });

@@ -55,6 +55,8 @@ public:
     Q_INVOKABLE bool transaction(int index, std::function<void (TransactionInfo &)> callback);
     // Q_INVOKABLE TransactionInfo * transaction(const QString &id);
     Q_INVOKABLE void refresh(quint32 accountIndex);
+    // SM64COIN: ascending heights of the coinbase transfers (the blocks this wallet mined), for the leaderboard
+    Q_INVOKABLE QVariantList minedHeights() const;
     Q_INVOKABLE QString writeCSV(quint32 accountIndex, QString out);
     quint64 count() const;
     QDateTime firstDateTime() const;

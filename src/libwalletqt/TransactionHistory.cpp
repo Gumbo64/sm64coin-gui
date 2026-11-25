@@ -35,6 +35,7 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 #include <QtGlobal>
+#include <algorithm>
 
 namespace {
     QString sanitizeCSVField(QString field)
@@ -140,6 +141,20 @@ void TransactionHistory::refresh(quint32 accountIndex)
         m_lastDateTime = lastDateTime;
         emit lastDateTimeChanged();
     }
+}
+
+QVariantList TransactionHistory::minedHeights() const
+{
+    QReadLocker locker(&m_lock);
+    QList<quint64> h;
+    for (const TransactionInfo *t : m_tinfo)
+        if (t->isCoinbase() && t->blockHeight() > 0 && !t->isFailed() && !h.contains(t->blockHeight()))
+            h.append(t->blockHeight());
+    std::sort(h.begin(), h.end());
+    QVariantList out;
+    for (quint64 x : h.mid(qMax(0, h.size() - 20000)))
+        out.append(QVariant::fromValue(x));
+    return out;
 }
 
 quint64 TransactionHistory::count() const
