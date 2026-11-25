@@ -5,6 +5,9 @@
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSet>
 #include <QRegularExpression>
 #include <QDir>
 #include <QFile>
@@ -363,6 +366,35 @@ void Sm64WebServer::incomingConnection(qintptr handle)
     QTimer::singleShot(150000, s, [s]() { s->abort(); }); // a stuck client never holds the socket forever
 }
 
+// nullptr if the request may be served, else the reason it is refused.
+static const char *forbidden(const QByteArray &origin, const QByteArray &host, quint16 port)
+{
+    QString h = QString::fromLatin1(host).trimmed().toLower();
+    QString name = h, hp;
+    const int end = h.indexOf(']');
+    const int colon = end >= 0 ? (h.indexOf(':', end) ) : h.lastIndexOf(':');
+    if (colon >= 0) { name = h.left(colon); hp = h.mid(colon + 1); }
+    if (name != QLatin1String("localhost") && name != QLatin1String("127.0.0.1") && name != QLatin1String("[::1]")) return "wrong Host";
+    if (hp != QString::number(port)) return "wrong Host";
+    if (!origin.isEmpty()) {
+        QString o = QString::fromLatin1(origin).trimmed().toLower();
+        while (o.endsWith('/')) o.chop(1);
+        const QString p = QString::number(port);
+        if (o != "http://localhost:" + p && o != "http://127.0.0.1:" + p && o != "http://[::1]:" + p) return "foreign Origin";
+    }
+    return nullptr;
+}
+
+// The daemon calls the site makes. The node's RPC is unrestricted (stop_daemon, set_bans,
+// prune_blockchain ...), so nothing else goes through.
+static bool rpcAllowed(const QByteArray &body)
+{
+    static const QSet<QString> ok = {"get_info", "get_block_count", "get_block", "get_block_header_by_hash", "get_block_header_by_height",
+                                     "get_block_headers_range", "get_block_template", "submit_block"};
+    const QJsonDocument d = QJsonDocument::fromJson(body);
+    return d.isObject() && ok.contains(d.object().value("method").toString());
+}
+
 void Sm64WebServer::onData(QTcpSocket *s)
 {
     // One request per connection (Connection: close). Wait for the whole header and body.
@@ -377,15 +409,20 @@ void Sm64WebServer::onData(QTcpSocket *s)
     const QList<QByteArray> rl = lines.value(0).trimmed().split(' ');
     if (rl.size() < 2) return respond(s, 400, "text/plain", "bad request");
     qint64 len = 0;
-    QByteArray ctype;
+    QByteArray ctype, origin, host;
     for (int i = 1; i < lines.size(); ++i) {
         const int k = lines[i].indexOf(':');
         if (k < 0) continue;
         const QByteArray name = lines[i].left(k).trimmed().toLower(), val = lines[i].mid(k + 1).trimmed();
         if (name == "content-length") len = val.toLongLong();
         else if (name == "content-type") ctype = val;
+        else if (name == "origin") origin = val;
+        else if (name == "host") host = val;
     }
-    if (len < 0 || len > 16 * 1024 * 1024) return respond(s, 413, "text/plain", "too large");
+    // A foreign web page can POST to this port (Origin) and DNS rebinding makes a foreign name reach
+    // it (Host): only this site's own origin and a local Host name get through.
+    if (const char *why = forbidden(origin, host, serverPort())) return respond(s, 403, "text/plain", why);
+    if (len < 0 || len > 1024 * 1024) return respond(s, 413, "text/plain", "too large"); // submit_block bodies are < ~600 KB
     if (buf.size() - (he + 4) < len) return;
     s->disconnect(SIGNAL(readyRead()));
     s->setProperty("buf", QVariant());
@@ -396,7 +433,7 @@ void Sm64WebServer::respond(QTcpSocket *s, int code, const QByteArray &type, con
 {
     if (!s || s->state() != QAbstractSocket::ConnectedState) return;
     static const QHash<int, const char *> txt = {{200, "OK"}, {204, "No Content"}, {400, "Bad Request"}, {404, "Not Found"}, {405, "Method Not Allowed"},
-                                                 {413, "Payload Too Large"}, {431, "Request Header Fields Too Large"}, {502, "Bad Gateway"}, {503, "Service Unavailable"}};
+                                                 {403, "Forbidden"}, {413, "Payload Too Large"}, {431, "Request Header Fields Too Large"}, {502, "Bad Gateway"}, {503, "Service Unavailable"}};
     QByteArray h = "HTTP/1.1 " + QByteArray::number(code) + " " + txt.value(code, "Status") + "\r\nContent-Type: " + type
                  + "\r\nContent-Length: " + QByteArray::number(body.size()) + "\r\nCache-Control: no-cache\r\nConnection: close\r\n\r\n";
     s->write(h);
@@ -410,7 +447,8 @@ void Sm64WebServer::proxy(QTcpSocket *s, const QString &base, const QString &res
     if (!ctype.isEmpty()) req.setHeader(QNetworkRequest::ContentTypeHeader, ctype);
     QNetworkReply *reply = isPost ? m_nam.post(req, body) : m_nam.get(req);
     QPointer<QTcpSocket> sock(s);
-    QTimer::singleShot(120000, reply, [reply]() { reply->abort(); });
+    QTimer::singleShot(60000, reply, [reply]() { reply->abort(); });
+    connect(reply, &QNetworkReply::downloadProgress, reply, [reply](qint64 got, qint64) { if (got > (64 << 20)) reply->abort(); });
     connect(reply, &QNetworkReply::finished, this, [this, reply, sock]() {
         const QByteArray data = reply->readAll();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -433,8 +471,10 @@ void Sm64WebServer::serve(QTcpSocket *s, const QByteArray &method, const QByteAr
     const QString path = QString::fromUtf8(QByteArray::fromPercentEncoding(q < 0 ? target : target.left(q)));
     const QString query = q < 0 ? QString() : QString::fromUtf8(target.mid(q));
     Q_UNUSED(url);
-    if (path == "/json_rpc")
+    if (path == "/json_rpc") {
+        if (method != "POST" || !rpcAllowed(body)) return respond(s, 403, "text/plain", "this RPC method is not available through the website");
         return proxy(s, m_rpc, "/json_rpc", ctype, body, method == "POST");
+    }
     if (path.startsWith("/leaderboard-api")) {
         QString rest = path.mid(16);
         return proxy(s, m_leaderboard, (rest.isEmpty() ? QString("/") : rest) + query, ctype, body, method == "POST");
