@@ -390,7 +390,8 @@ static const char *forbidden(const QByteArray &origin, const QByteArray &host, q
 static bool rpcAllowed(const QByteArray &body)
 {
     static const QSet<QString> ok = {"get_info", "get_block_count", "get_block", "get_block_header_by_hash", "get_block_header_by_height",
-                                     "get_block_headers_range", "get_block_template", "submit_block"};
+                                     "get_block_headers_range", "get_block_template", "submit_block", "get_sm64_state", "get_sm64_cycle",
+                                     "sm64_board", "sm64_board_join"};
     const QJsonDocument d = QJsonDocument::fromJson(body);
     return d.isObject() && ok.contains(d.object().value("method").toString());
 }
